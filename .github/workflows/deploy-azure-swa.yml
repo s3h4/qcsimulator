@@ -28,7 +28,7 @@ jobs:
           action: "upload"
           app_location: "/" # Directory of your package.json
           api_location: ""
-          output_location: "dist" # Vite uses 'dist', Create React App uses 'build'
+          output_location: "build" # Vite uses 'dist', Create React App uses 'build'
 
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
