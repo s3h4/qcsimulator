@@ -66,7 +66,7 @@ const App = () => {
             <Activity className="mr-2 text-indigo-400" /> Edge Terminations Simulator
           </h2>
           <p className="text-sm text-slate-400 mb-6">
-            Adjust the connections per second to see how Post-Quantum Cryptography trades CPU efficiency for massive network and memory overhead in a highly concurrent environment.
+            Adjust the connections per second to see how Post-Quantum Cryptography trades CPU efficiency for massive network and memory overhead in a highly concurrent environment (e.g., Telco Edge or Ingress Load Balancer).
           </p>
 
           <div className="mb-8">
@@ -109,6 +109,9 @@ const App = () => {
                   );
                 })}
               </div>
+              <div className="mt-4 text-[10px] text-slate-500 italic leading-tight">
+                * CPU cycles required for key generation and encapsulation. ML-KEM lattice math is highly optimized for modern SIMD.
+              </div>
             </div>
 
             {/* Bandwidth Metric */}
@@ -133,6 +136,9 @@ const App = () => {
                     </div>
                   );
                 })}
+              </div>
+               <div className="mt-4 text-[10px] text-slate-500 italic leading-tight">
+                * Pure payload size on the wire. ML-KEM pushes TLS handshakes well over standard 1500B MTU limits, causing fragmentation.
               </div>
             </div>
 
@@ -159,6 +165,9 @@ const App = () => {
                   );
                 })}
               </div>
+               <div className="mt-4 text-[10px] text-slate-500 italic leading-tight">
+                * TCP buffers & socket state. Handling fragmented packets requires holding partial data in RAM until reassembly.
+              </div>
             </div>
           </div>
         </div>
@@ -180,7 +189,7 @@ const App = () => {
         {/* Network Channels */}
         <div className="flex-1 h-full relative flex flex-col justify-center px-4">
           
-          {/* Standard IP Channel */}
+          {/* Standard IP Channel (Always present) */}
           <div className="relative w-full h-8 mb-4 flex items-center">
             <div className="absolute w-full h-1 bg-slate-600 top-1/2 transform -translate-y-1/2 border-t border-b border-slate-500"></div>
             <span className="absolute -top-6 left-1/2 transform -translate-x-1/2 text-xs text-slate-400 font-mono">
@@ -207,23 +216,42 @@ const App = () => {
           {/* Dedicated Quantum Channel (Only QKD) */}
           {mode === 'qkd' && (
             <div className="relative w-full h-16 flex items-center mt-8">
-              <div className="absolute w-[45%] h-2 bg-purple-900/50 top-1/2 transform -translate-y-1/2 left-0 rounded-l-full border border-purple-500/30"></div>
-              <div className="absolute w-[45%] h-2 bg-purple-900/50 top-1/2 transform -translate-y-1/2 right-0 rounded-r-full border border-purple-500/30"></div>
+              {/* Link 1 (Alice to Node) */}
+              <div className="absolute w-[45%] h-2 bg-purple-900/50 top-1/2 transform -translate-y-1/2 left-0 rounded-l-full shadow-[0_0_10px_rgba(168,85,247,0.4)] border border-purple-500/30"></div>
+              {/* Link 2 (Node to Bob) */}
+              <div className="absolute w-[45%] h-2 bg-purple-900/50 top-1/2 transform -translate-y-1/2 right-0 rounded-r-full shadow-[0_0_10px_rgba(168,85,247,0.4)] border border-purple-500/30"></div>
               
               {/* Trusted Repeater Node */}
               <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center z-20">
-                <div className="w-10 h-10 bg-orange-900/80 rounded border-2 border-orange-500 flex items-center justify-center">
+                <div className="w-10 h-10 bg-orange-900/80 rounded border-2 border-orange-500 flex items-center justify-center shadow-[0_0_15px_rgba(249,115,22,0.6)]">
                   <Unlock className="text-orange-400" size={18} />
                 </div>
-                <span className="mt-1 text-[9px] font-bold text-orange-400 text-center leading-tight">TRUSTED NODE</span>
+                <span className="mt-1 text-[9px] font-bold text-orange-400 text-center leading-tight uppercase">Trusted<br/>Repeater</span>
               </div>
 
-              {/* Photon Animation */}
+              <span className="absolute -top-4 left-1/4 transform -translate-x-1/2 text-[10px] text-purple-400 font-mono flex items-center">
+                <Zap size={10} className="mr-1"/> Link 1
+              </span>
+              <span className="absolute -top-4 left-3/4 transform -translate-x-1/2 text-[10px] text-purple-400 font-mono flex items-center">
+                <Zap size={10} className="mr-1"/> Link 2
+              </span>
+
+              {/* Photon Animation Link 1 */}
               {transmissionState !== 'idle' && (
-                <div className={`absolute top-1/2 transform -translate-y-1/2 transition-all duration-1000 ease-linear ${transmissionState === 'sending' ? 'left-0' : transmissionState === 'intercepted' ? 'left-[25%]' : 'left-full'} -ml-2 z-10`}>
+                <div className={`absolute top-1/2 transform -translate-y-1/2 transition-all duration-1000 ease-linear ${transmissionState === 'sending' ? 'left-0' : transmissionState === 'intercepted' ? 'left-[25%]' : 'left-[50%]'} -ml-2 z-10`}>
                    <div className="flex space-x-1">
                      <div className={`w-2 h-2 rounded-full ${eveActive && transmissionState !== 'sending' ? 'bg-red-500' : 'bg-purple-400'} shadow-[0_0_8px_rgba(168,85,247,0.8)]`}></div>
                      <div className={`w-2 h-2 rounded-full ${eveActive && transmissionState !== 'sending' ? 'bg-red-500' : 'bg-purple-400'} shadow-[0_0_8px_rgba(168,85,247,0.8)]`}></div>
+                   </div>
+                </div>
+              )}
+
+              {/* Photon Animation Link 2 (Only if not intercepted) */}
+              {transmissionState !== 'idle' && transmissionState !== 'aborted' && transmissionState !== 'intercepted' && (
+                 <div className={`absolute top-1/2 transform -translate-y-1/2 transition-all duration-1000 delay-1000 ease-linear ${transmissionState === 'sending' ? 'left-[50%]' : 'left-full'} -ml-2 z-10 ${transmissionState === 'sending' ? 'opacity-0' : 'opacity-100'}`}>
+                   <div className="flex space-x-1">
+                     <div className="w-2 h-2 rounded-full bg-purple-400 shadow-[0_0_8px_rgba(168,85,247,0.8)]"></div>
+                     <div className="w-2 h-2 rounded-full bg-purple-400 shadow-[0_0_8px_rgba(168,85,247,0.8)]"></div>
                    </div>
                 </div>
               )}
@@ -236,6 +264,11 @@ const App = () => {
               <Eye className={eveActive ? 'text-red-500' : 'text-slate-500'} size={24} />
             </div>
             <span className={`mt-1 text-xs font-bold ${eveActive ? 'text-red-400' : 'text-slate-500'}`}>Eve</span>
+            {transmissionState === 'intercepted' && (
+              <span className="absolute -bottom-6 text-[10px] text-red-400 bg-slate-900 px-1 rounded border border-red-900 whitespace-nowrap">
+                {mode === 'qkd' ? 'Measuring Photons...' : 'Copying Packets...'}
+              </span>
+            )}
           </div>
         </div>
 
@@ -259,13 +292,14 @@ const App = () => {
           <div className="flex justify-between items-start mb-6">
             <div>
               <h1 className="text-2xl font-bold text-white mb-2 flex items-center">
-                <Shield className="mr-2 text-indigo-400" /> Quantum Network Architecture Simulator
+                <Shield className="mr-2 text-indigo-400" /> Cryptography Architecture Simulator
               </h1>
               <p className="text-slate-400 text-sm">
-                Evaluate the OSI layer impact of Classical vs. Post-Quantum mechanisms.
+                Evaluate the OSI layer impact, infrastructure requirements, and system resource utilization of Classical vs. Post-Quantum mechanisms.
               </p>
             </div>
             
+            {/* Tab Navigation */}
             <div className="flex bg-slate-950 rounded-lg p-1 border border-slate-800">
               <button 
                 onClick={() => setActiveTab('architecture')}
@@ -285,67 +319,149 @@ const App = () => {
           <div className="flex space-x-4">
             <button 
               onClick={() => setMode('classical')}
-              className={`flex-1 py-3 px-4 rounded-lg border-2 transition-all ${mode === 'classical' ? 'border-blue-500 bg-blue-900/30 text-white' : 'border-slate-700 bg-slate-800 text-slate-400'}`}
+              className={`flex-1 py-3 px-4 rounded-lg border-2 transition-all ${mode === 'classical' ? 'border-blue-500 bg-blue-900/30 text-white' : 'border-slate-700 bg-slate-800 text-slate-400 hover:border-slate-600'}`}
             >
-              <div className="font-bold text-sm">Classical (RSA/ECC)</div>
+              <div className="font-bold">Classical (RSA/ECC)</div>
+              <div className="text-xs mt-1 opacity-70">Software / Math based</div>
             </button>
             <button 
               onClick={() => setMode('pqc')}
-              className={`flex-1 py-3 px-4 rounded-lg border-2 transition-all ${mode === 'pqc' ? 'border-green-500 bg-green-900/30 text-white' : 'border-slate-700 bg-slate-800 text-slate-400'}`}
+              className={`flex-1 py-3 px-4 rounded-lg border-2 transition-all ${mode === 'pqc' ? 'border-green-500 bg-green-900/30 text-white' : 'border-slate-700 bg-slate-800 text-slate-400 hover:border-slate-600'}`}
             >
-              <div className="font-bold text-sm">PQC (ML-KEM)</div>
+              <div className="font-bold">PQC (ML-KEM)</div>
+              <div className="text-xs mt-1 opacity-70">Software / Lattice Math</div>
             </button>
             <button 
               onClick={() => setMode('qkd')}
-              className={`flex-1 py-3 px-4 rounded-lg border-2 transition-all ${mode === 'qkd' ? 'border-purple-500 bg-purple-900/30 text-white' : 'border-slate-700 bg-slate-800 text-slate-400'}`}
+              className={`flex-1 py-3 px-4 rounded-lg border-2 transition-all ${mode === 'qkd' ? 'border-purple-500 bg-purple-900/30 text-white' : 'border-slate-700 bg-slate-800 text-slate-400 hover:border-slate-600'}`}
             >
-              <div className="font-bold text-sm">QKD (BB84)</div>
+              <div className="font-bold">QKD (BB84)</div>
+              <div className="text-xs mt-1 opacity-70">Hardware / Physics based</div>
             </button>
           </div>
         </div>
 
+        {/* Main Simulator Area */}
         {activeTab === 'architecture' ? (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in fade-in duration-500">
+            {/* Left Column: Visualization & Controls */}
             <div className="lg:col-span-2 space-y-6">
               {renderTopology()}
+
               <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-lg flex items-center justify-between">
                 <div className="space-x-4">
                   <button 
                     onClick={runSimulation}
                     disabled={transmissionState !== 'idle' && transmissionState !== 'received' && transmissionState !== 'aborted'}
-                    className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded font-bold disabled:opacity-50 transition-colors"
+                    className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded font-bold disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
                     Initiate Key Exchange
                   </button>
                   <button 
                     onClick={() => setEveActive(!eveActive)}
-                    className={`px-6 py-2 rounded font-bold border transition-colors ${eveActive ? 'bg-red-900/50 border-red-500 text-red-400' : 'bg-slate-800 border-slate-600 text-slate-300'}`}
+                    className={`px-6 py-2 rounded font-bold border transition-colors ${eveActive ? 'bg-red-900/50 border-red-500 text-red-400' : 'bg-slate-800 border-slate-600 text-slate-300 hover:bg-slate-700'}`}
                   >
-                    {eveActive ? 'Disable Eve' : 'Enable Eve'}
+                    {eveActive ? 'Disable Eve' : 'Enable Eve (Eavesdrop)'}
                   </button>
                 </div>
+
+                {/* Status Output */}
                 <div className="text-right">
                   <div className="text-sm text-slate-400 mb-1">Status</div>
                   <div className="font-mono font-bold text-lg">
                     {transmissionState === 'idle' && <span className="text-slate-500">Ready</span>}
                     {transmissionState === 'sending' && <span className="text-blue-400 animate-pulse">Transmitting...</span>}
-                    {transmissionState === 'intercepted' && <span className="text-red-500 animate-pulse">Intercepted!</span>}
-                    {transmissionState === 'received' && <span className="text-green-400">Secure</span>}
-                    {transmissionState === 'aborted' && <span className="text-red-500">Aborted</span>}
+                    {transmissionState === 'intercepted' && <span className="text-red-500 animate-pulse">Intercepted by Eve!</span>}
+                    {transmissionState === 'received' && <span className="text-green-400">Key Established</span>}
+                    {transmissionState === 'aborted' && <span className="text-red-500 flex items-center"><ShieldAlert size={18} className="mr-1"/> Protocol Aborted</span>}
                   </div>
                 </div>
               </div>
             </div>
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-lg h-fit">
-              <h3 className="text-lg font-bold text-white mb-4">Analysis</h3>
-              <div className="space-y-4 text-sm text-slate-300">
-                <p><span className="font-bold text-indigo-400">OSI Layer:</span> {mode === 'qkd' ? "Layer 1 (Physical)" : "Layer 7 (Application)"}</p>
-                <p><span className="font-bold text-indigo-400">Against Quantum:</span> {mode === 'classical' ? "Vulnerable" : "Resistant"}</p>
-                <p className="p-3 bg-slate-950 rounded border border-slate-800 text-xs italic">
-                  {mode === 'qkd' && "QKD uses Heisenberg's Uncertainty Principle to ensure any eavesdropping is detected via physical state change."}
-                  {mode === 'pqc' && "ML-KEM uses lattice-based math which remains hard even for Shor's algorithm."}
-                  {mode === 'classical' && "RSA/ECC are solvable in polynomial time by a sufficiently large quantum computer."}
-                </p>
+
+            {/* Right Column: Architectural Analysis */}
+            <div className="space-y-6">
+              <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-lg">
+                <h3 className="text-lg font-bold text-white mb-4 border-b border-slate-700 pb-2">Architectural Impact</h3>
+                
+                <div className="space-y-4 text-sm">
+                  <div>
+                    <div className="text-slate-400 mb-1">OSI Layer Operation</div>
+                    <div className="font-mono text-slate-200 bg-slate-800 p-2 rounded border border-slate-700">
+                      {mode === 'classical' && "Layer 7 (Software/Math)"}
+                      {mode === 'pqc' && "Layer 7 (Software/Lattice Math)"}
+                      {mode === 'qkd' && "Layer 1 (Hardware/Physics)"}
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="text-slate-400 mb-1">Infrastructure Requirement</div>
+                    <div className={`font-mono p-2 rounded border ${mode === 'qkd' ? 'bg-purple-900/20 border-purple-500/50 text-purple-300' : 'bg-slate-800 border-slate-700 text-slate-200'}`}>
+                      {mode === 'classical' && "Standard IP Network. No hardware changes."}
+                      {mode === 'pqc' && "Standard IP Network. Requires TLS 1.3 updates."}
+                      {mode === 'qkd' && "Dedicated dark fiber. Highly secure physical bunkers (Trusted Nodes) required every ~100km to act as repeaters."}
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="text-slate-400 mb-1">Network Payload Size (Public Key)</div>
+                    <div className="font-mono text-slate-200 bg-slate-800 p-2 rounded border border-slate-700 flex items-center justify-between">
+                      <span>
+                        {mode === 'classical' && "Small (e.g., 32B for ECC)"}
+                        {mode === 'pqc' && "Massive (e.g., 1,184B for ML-KEM-768)"}
+                        {mode === 'qkd' && "N/A (Single Photons)"}
+                      </span>
+                      {mode === 'pqc' && <Activity size={16} className="text-yellow-500"/>}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-lg">
+                <h3 className="text-lg font-bold text-white mb-4 border-b border-slate-700 pb-2">Security Analysis</h3>
+                
+                {mode === 'qkd' && (
+                  <div className="mb-4 bg-slate-950 p-3 rounded border border-slate-800">
+                    <div className="text-xs text-slate-400 mb-1">Quantum Bit Error Rate (QBER)</div>
+                    <div className="flex items-center">
+                      <div className="w-full bg-slate-800 rounded-full h-2.5 mr-2">
+                        <div className={`h-2.5 rounded-full ${qber > 11 ? 'bg-red-500' : 'bg-green-500'}`} style={{ width: `${qber}%` }}></div>
+                      </div>
+                      <span className={`font-mono text-xs ${qber > 11 ? 'text-red-400' : 'text-green-400'}`}>{qber}%</span>
+                    </div>
+                    <p className="text-[10px] text-slate-500 mt-1">Threshold: ~11%. Eve's measurement forces collapse.</p>
+                  </div>
+                )}
+
+                <div className="text-sm space-y-3">
+                  <div className="flex items-start">
+                    <div className="mt-0.5 mr-2">
+                      {mode === 'qkd' ? <Unlock className="text-orange-500" size={16}/> : (mode === 'classical' ? <Unlock className="text-red-500" size={16}/> : <Lock className="text-green-500" size={16}/>)}
+                    </div>
+                    <div>
+                      <span className="font-bold text-slate-200">Against Quantum Computers: </span>
+                      <span className={mode === 'classical' ? 'text-red-400' : (mode === 'qkd' ? 'text-orange-400' : 'text-green-400')}>
+                        {mode === 'classical' && "Vulnerable (Shor's Algorithm). Eve saves packets now to decrypt later (SNDL)."}
+                        {mode === 'pqc' && "Secure. Mathematically resistant to known quantum algorithms."}
+                        {mode === 'qkd' && "Physics link secure, BUT breaks end-to-end encryption. The Trusted Node holds plaintext keys in memory, making it a highly vulnerable classical attack vector."}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start">
+                    <div className="mt-0.5 mr-2">
+                      {eveActive && mode === 'qkd' ? <Activity className="text-blue-400" size={16}/> : <Wifi className="text-slate-500" size={16}/>}
+                    </div>
+                    <div>
+                      <span className="font-bold text-slate-200">Eavesdropping Detection: </span>
+                      <span className="text-slate-400">
+                        {mode === 'classical' && "None. Eve can copy IP packets passively without detection."}
+                        {mode === 'pqc' && "None. Eve can copy IP packets passively, but cannot read them."}
+                        {mode === 'qkd' && "Immediate. Measuring a photon alters its state. Alice and Bob detect the spike in error rates and abort."}
+                      </span>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
