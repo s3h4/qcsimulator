@@ -63,7 +63,7 @@ const App = () => {
     };
 
     return (
-      <div className="space-y-6 animate-in fade-in duration-500">
+      <div className="space-y-6 animate-in fade-in duration-1000">
         <div className="bg-[#0a0a0a] border border-slate-800 rounded-xl p-8 shadow-2xl">
           <h2 className="text-2xl font-black text-white mb-4 flex items-center tracking-tight">
             <Activity className={`mr-3 ${A1_RED_TEXT} w-8 h-8`} /> Edge Terminations Simulator
@@ -109,7 +109,7 @@ const App = () => {
                         <span className="font-mono text-white">{data.cpuLoad.toLocaleString()} units</span>
                       </div>
                       <div className="w-full bg-slate-900 rounded-full h-3 border border-slate-800">
-                        <div className={`h-3 rounded-full ${data.color} transition-all duration-500 ease-out`} style={{ width: `${Math.min((data.cpuLoad / 50000) * 100, 100)}%` }}></div>
+                        <div className={`h-3 rounded-full ${data.color} transition-all duration-1000 ease-out`} style={{ width: `${Math.min((data.cpuLoad / 50000) * 100, 100)}%` }}></div>
                       </div>
                     </div>
                   );
@@ -138,7 +138,7 @@ const App = () => {
                         <span className="font-mono text-white">{(data.bandwidthKBps / 1024).toFixed(2)} MB/s</span>
                       </div>
                       <div className="w-full bg-slate-900 rounded-full h-3 border border-slate-800">
-                        <div className={`h-3 rounded-full ${data.color} transition-all duration-500 ease-out`} style={{ width: `${Math.min((data.bandwidthKBps / 111000) * 100, 100)}%` }}></div>
+                        <div className={`h-3 rounded-full ${data.color} transition-all duration-1000 ease-out`} style={{ width: `${Math.min((data.bandwidthKBps / 111000) * 100, 100)}%` }}></div>
                       </div>
                     </div>
                   );
@@ -167,7 +167,7 @@ const App = () => {
                         <span className="font-mono text-white">{data.memoryMB.toFixed(2)} GB</span>
                       </div>
                       <div className="w-full bg-slate-900 rounded-full h-3 border border-slate-800">
-                        <div className={`h-3 rounded-full ${data.color} transition-all duration-500 ease-out`} style={{ width: `${Math.min((data.memoryMB / 1.5) * 100, 100)}%` }}></div>
+                        <div className={`h-3 rounded-full ${data.color} transition-all duration-1000 ease-out`} style={{ width: `${Math.min((data.memoryMB / 1.5) * 100, 100)}%` }}></div>
                       </div>
                     </div>
                   );
@@ -272,7 +272,7 @@ const App = () => {
           )}
 
           {/* Eve the Attacker (Shifted to Amber/Warning instead of Red) */}
-          <div className={`absolute top-1/2 ${mode === 'qkd' ? 'left-[25%]' : 'left-1/2'} transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center z-30 transition-all duration-500`}>
+          <div className={`absolute top-1/2 ${mode === 'qkd' ? 'left-[25%]' : 'left-1/2'} transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center z-30 transition-all duration-1000`}>
             <div className={`w-16 h-16 rounded-xl bg-black border-2 flex items-center justify-center transition-all duration-300 ${eveActive ? 'border-amber-500 shadow-[0_0_25px_rgba(245,158,11,0.6)] scale-110' : 'border-slate-800 opacity-40'}`}>
               <Eye className={eveActive ? 'text-amber-500' : 'text-slate-600'} size={32} />
             </div>
@@ -368,7 +368,7 @@ const App = () => {
 
         {/* Main Simulator Area */}
         {activeTab === 'architecture' ? (
-          <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 animate-in fade-in duration-500">
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 animate-in fade-in duration-1000">
             {/* Left Column: Visualization & Controls */}
             <div className="xl:col-span-2 space-y-8">
               {renderTopology()}
@@ -456,7 +456,7 @@ const App = () => {
                     <div className="text-xs text-slate-500 mb-2 font-bold uppercase tracking-wider">Quantum Bit Error Rate (QBER)</div>
                     <div className="flex items-center">
                       <div className="w-full bg-slate-900 rounded-full h-3 mr-4 border border-slate-700">
-                        <div className={`h-3 rounded-full transition-all duration-500 ${qber > 11 ? 'bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.8)]' : 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.8)]'}`} style={{ width: `${qber}%` }}></div>
+                        <div className={`h-3 rounded-full transition-all duration-1000 ${qber > 11 ? 'bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.8)]' : 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.8)]'}`} style={{ width: `${qber}%` }}></div>
                       </div>
                       <span className={`font-mono font-black text-lg ${qber > 11 ? 'text-amber-500' : 'text-green-500'}`}>{qber}%</span>
                     </div>
