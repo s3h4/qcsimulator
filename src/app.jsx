@@ -107,16 +107,26 @@ const App = () => {
 
       // Start animation
       const t2 = setTimeout(() => {
-        setTransmissionState('moving');
+        if (attackerActiveRef.current) {
+          setTransmissionState('moving_to_intercept');
+        } else {
+          setTransmissionState('moving');
+        }
       }, 100);
 
-      // SLOWED DOWN: Intercept happens halfway
       const t3 = setTimeout(() => {
-        setTransmissionState(prevState => {
-          // If attacker is active when we reach halfway, switch to intercepted
-          return attackerActiveRef.current ? 'intercepted' : prevState;
-        });
-      }, 2250); 
+        if (attackerActiveRef.current) {
+          setTransmissionState('intercepted');
+        }
+      }, 600); // 500ms to reach middle
+
+      const t3_5 = setTimeout(() => {
+        if (attackerActiveRef.current) {
+          setTransmissionState('moving_after_intercept');
+        }
+      }, 1600); // Pauses for 1000ms
+
+      const finalTime = attackerActiveRef.current ? 2100 : 1100;
 
       // Final state reached
       const t4 = setTimeout(() => {
@@ -136,9 +146,9 @@ const App = () => {
           }, 1500); // Wait 1.5s before sending next packet
           timeoutsRef.current.push(t5);
         }
-      }, 4550); 
+      }, finalTime); 
 
-      timeoutsRef.current.push(t2, t3, t4);
+      timeoutsRef.current.push(t2, t3, t3_5, t4);
     }, 100);
 
     timeoutsRef.current.push(t1);
@@ -165,6 +175,26 @@ const App = () => {
 
   const handleAttackerToggle = () => {
     setAttackerActive(!attackerActive);
+  };
+
+  const getPacketPosition = () => {
+    if (transmissionState === 'idle' || transmissionState === 'sending') {
+      return direction === 'ltr' ? '-left-48' : 'left-full';
+    }
+    if (transmissionState === 'moving_to_intercept' || transmissionState === 'intercepted') {
+      return 'left-1/2 -translate-x-1/2';
+    }
+    return direction === 'ltr' ? 'left-full' : '-left-48';
+  };
+
+  const getPacketDuration = () => {
+    if (transmissionState === 'moving_to_intercept' || transmissionState === 'moving_after_intercept') {
+      return 'duration-[500ms]';
+    }
+    if (transmissionState === 'intercepted') {
+      return 'duration-[0ms]';
+    }
+    return 'duration-[1000ms]';
   };
 
   const renderResourceImpact = () => {
@@ -336,71 +366,80 @@ const App = () => {
           <div className="relative w-full flex flex-col">
             
             {/* Standard IP Channel (Always present) */}
-            <div className={`relative w-full h-12 flex items-center ${mode === 'qkd' ? 'mb-12' : ''}`}>
-              <div className="absolute w-full h-2 bg-slate-100 top-1/2 transform -translate-y-1/2 border-t border-b border-slate-200"></div>
-              <span className="absolute -top-6 left-1/2 transform -translate-x-1/2 text-[10px] sm:text-xs text-slate-600 font-mono tracking-widest bg-white px-3 border border-slate-200 rounded-full shadow-sm">
+            <div className={`relative w-full ${mode === 'qkd' ? 'mb-12' : ''}`}>
+              <span className="absolute -top-6 left-1/2 transform -translate-x-1/2 text-[10px] sm:text-xs text-slate-600 font-mono tracking-widest bg-white px-3 border border-slate-200 rounded-full shadow-sm z-10">
                 PUBLIC IP NETWORK (LAYER 3)
               </span>
               
-              {/* Packet Animation - Double Slower */}
-              {transmissionState !== 'idle' && (
-                <div className={`absolute top-1/2 transform -translate-y-1/2 transition-all duration-[4500ms] ease-linear ${transmissionState === 'sending' ? (direction === 'ltr' ? 'left-0' : 'left-full') : (direction === 'ltr' ? 'left-full' : 'left-0')} -ml-6 z-20`}>
-                      <div className={`relative flex items-center justify-center rounded-2xl shadow-lg transition-all duration-500 ${mode === 'classical' ? 'w-20 h-10 bg-blue-600 border-2 border-blue-700' : ''} ${mode === 'pqc' ? 'w-40 h-12 bg-emerald-600 border-2 border-emerald-700' : ''} ${mode === 'qkd' ? 'w-32 h-10 bg-gradient-to-r from-violet-500 via-fuchsia-500 to-purple-700 border border-purple-300' : ''}`}>
-                    {mode === 'classical' && (
-                      <div className="flex items-center space-x-2 text-white text-[10px] uppercase font-black">
-                        <Package size={18} className="text-white" />
-                        <Lock size={14} className="text-white" />
-                      </div>
-                    )}
-                    {mode === 'pqc' && (
-                      <div className="flex items-center justify-center w-full space-x-2 text-white text-[10px] uppercase font-black">
-                        <Package size={28} className="text-white" />
-                        <div className="flex flex-col space-y-1">
-                          <div className="flex space-x-1">
-                            <Lock size={12} className="text-white" />
-                            <Lock size={12} className="text-white" />
-                            <Lock size={12} className="text-white" />
+              {/* IP Network Pipe */}
+              <div className="relative w-full h-16 bg-slate-50 border-y-2 border-dashed border-slate-300 shadow-inner overflow-hidden flex items-center">
+                {/* Decorative horizontal track lines */}
+                <div className="absolute w-full h-px bg-slate-200 top-1/3"></div>
+                <div className="absolute w-full h-px bg-slate-200 top-2/3"></div>
+
+                {/* Packet Animation */}
+                {transmissionState !== 'idle' && (
+                  <div className={`absolute top-1/2 transform -translate-y-1/2 transition-all ${getPacketDuration()} ease-linear ${getPacketPosition()} z-20`}>
+                    <div className={`relative flex items-center justify-center rounded-2xl shadow-lg transition-all duration-500 ${mode === 'classical' ? 'w-20 h-10 bg-blue-600 border-2 border-blue-700' : ''} ${mode === 'pqc' ? 'w-40 h-12 bg-emerald-600 border-2 border-emerald-700' : ''} ${mode === 'qkd' ? 'w-32 h-10 bg-gradient-to-r from-violet-500 via-fuchsia-500 to-purple-700 border border-purple-300' : ''}`}>
+                      {mode === 'classical' && (
+                        <div className="flex items-center space-x-2 text-white text-[10px] uppercase font-black">
+                          <Package size={18} className="text-white" />
+                          <Lock size={14} className="text-white" />
+                        </div>
+                      )}
+                      {mode === 'pqc' && (
+                        <div className="flex items-center justify-center w-full space-x-2 text-white text-[10px] uppercase font-black">
+                          <Package size={28} className="text-white" />
+                          <div className="flex flex-col space-y-1">
+                            <div className="flex space-x-1">
+                              <Lock size={12} className="text-white" />
+                              <Lock size={12} className="text-white" />
+                              <Lock size={12} className="text-white" />
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    )}
-                    {mode === 'qkd' && (
-                      <div className="flex items-center space-x-2 text-white text-[10px] uppercase font-black relative">
-                        <Sparkles size={16} className="text-amber-300 absolute -top-3 -left-3 animate-pulse" />
-                        <Package size={22} className="text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]" />
-                        <Zap size={14} className="text-white" />
-                        <Sparkles size={16} className="text-amber-300 absolute -bottom-3 -right-3 animate-pulse delay-75" />
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Dedicated Quantum Channel (Only QKD) */}
-            {mode === 'qkd' && (
-              <div className="relative w-full h-12 flex items-center mt-12">
-                {/* Single Quantum Link */}
-                <div className="absolute w-full h-3 bg-purple-100 top-1/2 transform -translate-y-1/2 left-0 rounded-full shadow-inner border border-purple-300"></div>
-
-                <span className="absolute -top-5 left-1/2 transform -translate-x-1/2 text-[10px] sm:text-xs text-purple-700 font-mono tracking-widest flex items-center bg-purple-50 px-3 rounded-full border border-purple-200 shadow-sm">
-                  <Zap size={12} className="mr-2 text-purple-600"/> DEDICATED QUANTUM LINK (LAYER 1)
-                </span>
-
-                {/* Photon Animation Link - Double Slower */}
-                {transmissionState !== 'idle' && (
-                  <div className={`absolute top-1/2 transform -translate-y-1/2 transition-all duration-[4500ms] ease-linear ${transmissionState === 'sending' ? (direction === 'ltr' ? 'left-0' : 'left-full') : (direction === 'ltr' ? 'left-full' : 'left-0')} -ml-3 z-10`}>
-                    <div className="flex space-x-2">
-                      <div className={`w-3 h-3 rounded-full ${attackerActive && transmissionState !== 'sending' ? 'bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.6)]' : 'bg-purple-600 shadow-[0_0_10px_rgba(147,51,234,0.6)]'}`}></div>
-                      <div className={`w-3 h-3 rounded-full ${attackerActive && transmissionState !== 'sending' ? 'bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.6)]' : 'bg-purple-600 shadow-[0_0_10px_rgba(147,51,234,0.6)]'}`}></div>
+                      )}
+                      {mode === 'qkd' && (
+                        <div className="flex items-center space-x-2 text-white text-[10px] uppercase font-black relative">
+                          <Sparkles size={16} className="text-amber-300 absolute -top-3 -left-3 animate-pulse" />
+                          <Package size={22} className="text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]" />
+                          <Zap size={14} className="text-white" />
+                          <Sparkles size={16} className="text-amber-300 absolute -bottom-3 -right-3 animate-pulse delay-75" />
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
               </div>
+            </div>
+
+            {/* Dedicated Quantum Channel (Only QKD) */}
+            {mode === 'qkd' && (
+              <div className="relative w-full mt-12">
+                <span className="absolute -top-6 left-1/2 transform -translate-x-1/2 text-[10px] sm:text-xs text-purple-700 font-mono tracking-widest flex items-center bg-purple-50 px-3 rounded-full border border-purple-200 shadow-sm z-10">
+                  <Zap size={12} className="mr-2 text-purple-600"/> DEDICATED QUANTUM LINK (LAYER 1)
+                </span>
+
+                {/* The Quantum "Fiber Pipe" */}
+                <div className="relative w-full h-10 bg-slate-900 border-y-2 border-purple-500 overflow-hidden shadow-[inset_0_0_20px_rgba(147,51,234,0.4)] flex items-center rounded-full">
+                  {/* Glowing core line */}
+                  <div className="absolute w-full h-px bg-purple-400/50 top-1/2 transform -translate-y-1/2 shadow-[0_0_8px_rgba(168,85,247,0.8)]"></div>
+
+                  {/* Photon Animation Link */}
+                  {transmissionState !== 'idle' && (
+                    <div className={`absolute top-1/2 transform -translate-y-1/2 transition-all ${getPacketDuration()} ease-linear ${getPacketPosition()} z-10`}>
+                      <div className="flex space-x-3">
+                        <div className={`w-4 h-4 rounded-full ${attackerActive && transmissionState !== 'sending' ? 'bg-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.8)]' : 'bg-purple-400 shadow-[0_0_15px_rgba(192,132,252,0.9)]'} animate-pulse`}></div>
+                        <div className={`w-4 h-4 rounded-full ${attackerActive && transmissionState !== 'sending' ? 'bg-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.8)]' : 'bg-purple-400 shadow-[0_0_15px_rgba(192,132,252,0.9)]'} animate-pulse delay-75`}></div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
             )}
 
             {/* Attacker Node (Amber Warning Theme) */}
-            <div className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center z-30 transition-all duration-500 pointer-events-none`}>
+            <div className={`absolute top-4 left-1/2 transform -translate-x-1/2 flex flex-col items-center z-30 transition-all duration-500 pointer-events-none`}>
               <div className="pointer-events-auto flex flex-col items-center relative">
                 {attackerActive && mode === 'qkd' && (
                   <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-1 bg-amber-400 h-[240px] -z-10 animate-pulse rounded-full opacity-60"></div>
