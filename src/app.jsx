@@ -328,14 +328,14 @@ const App = () => {
               onClick={() => setMode('pqc')}
               className={`flex-1 py-3 px-4 rounded-lg border-2 transition-all ${mode === 'pqc' ? 'border-green-500 bg-green-900/30 text-white' : 'border-slate-700 bg-slate-800 text-slate-400 hover:border-slate-600'}`}
             >
-              <div className="font-bold">PQC (ML-KEM)</div>
+              <div className="font-bold">PQC</div>
               <div className="text-xs mt-1 opacity-70">Software / Lattice Math</div>
             </button>
             <button 
               onClick={() => setMode('qkd')}
               className={`flex-1 py-3 px-4 rounded-lg border-2 transition-all ${mode === 'qkd' ? 'border-purple-500 bg-purple-900/30 text-white' : 'border-slate-700 bg-slate-800 text-slate-400 hover:border-slate-600'}`}
             >
-              <div className="font-bold">QKD (BB84)</div>
+              <div className="font-bold">QKD</div>
               <div className="text-xs mt-1 opacity-70">Hardware / Physics based</div>
             </button>
           </div>
