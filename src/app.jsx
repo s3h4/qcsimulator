@@ -31,7 +31,7 @@ const App = () => {
     },
     pqc: {
       id: 'pqc',
-      name: 'PQC (ML-KEM)',
+      name: 'PQC',
       desc: 'Software / Lattice Math',
       btnActive: 'border-emerald-600 bg-emerald-50 shadow-[0_4px_15px_rgba(5,150,105,0.15)]',
       textPrimary: 'text-emerald-800',
@@ -45,7 +45,7 @@ const App = () => {
     },
     qkd: {
       id: 'qkd',
-      name: 'QKD (BB84)',
+      name: 'QKD',
       desc: 'Hardware / Physics based',
       btnActive: 'border-purple-600 bg-purple-50 shadow-[0_4px_15px_rgba(147,51,234,0.15)]',
       textPrimary: 'text-purple-800',
