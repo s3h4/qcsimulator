@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Network, Server, Shield, ShieldAlert, Zap, Activity, UserX, Lock, Unlock, HardDrive, Wifi, Cpu, Database, BarChart2, Smartphone, LayoutTemplate } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Network, Server, Shield, ShieldAlert, Zap, Activity, UserX, Lock, Unlock, HardDrive, Wifi, Cpu, Database, BarChart2, Smartphone, LayoutTemplate, Package, Sparkles } from 'lucide-react';
 
 const App = () => {
   const [activeTab, setActiveTab] = useState('architecture'); // architecture, resources
@@ -8,6 +8,20 @@ const App = () => {
   const [transmissionState, setTransmissionState] = useState('idle'); // idle, sending, intercepted, received, aborted
   const [qber, setQber] = useState(0); // Quantum Bit Error Rate
   const [cps, setCps] = useState(1000); // Connections Per Second for the resource simulator
+  const [isTransmitting, setIsTransmitting] = useState(false);
+  const [direction, setDirection] = useState('ltr'); // ltr or rtl
+
+  const attackerActiveRef = useRef(attackerActive);
+  useEffect(() => {
+    attackerActiveRef.current = attackerActive;
+  }, [attackerActive]);
+
+  const isTransmittingRef = useRef(isTransmitting);
+  useEffect(() => {
+    isTransmittingRef.current = isTransmitting;
+  }, [isTransmitting]);
+
+  const runSimulationRef = useRef(null);
 
   // A1 Brand Identity
   const A1_RED_BG = "bg-[#E50000]";
@@ -17,8 +31,8 @@ const App = () => {
   const themes = {
     classical: {
       id: 'classical',
-      name: 'Classical (RSA/ECC)',
-      desc: 'Software / Math based',
+      name: 'Classical Encryption',
+      desc: 'Software / Algebraic security',
       btnActive: 'border-blue-600 bg-blue-50 shadow-[0_4px_15px_rgba(37,99,235,0.15)]',
       textPrimary: 'text-blue-800',
       textAccent: 'text-blue-600',
@@ -31,8 +45,8 @@ const App = () => {
     },
     pqc: {
       id: 'pqc',
-      name: 'PQC',
-      desc: 'Software / Lattice Math',
+      name: 'Post-Quantum Cryptography',
+      desc: 'Software / Post-Quantum security',
       btnActive: 'border-emerald-600 bg-emerald-50 shadow-[0_4px_15px_rgba(5,150,105,0.15)]',
       textPrimary: 'text-emerald-800',
       textAccent: 'text-emerald-600',
@@ -45,8 +59,8 @@ const App = () => {
     },
     qkd: {
       id: 'qkd',
-      name: 'QKD',
-      desc: 'Hardware / Physics based',
+      name: 'Quantum Key Distribution',
+      desc: 'Hardware / Quantum light',
       btnActive: 'border-purple-600 bg-purple-50 shadow-[0_4px_15px_rgba(147,51,234,0.15)]',
       textPrimary: 'text-purple-800',
       textAccent: 'text-purple-600',
@@ -61,45 +75,104 @@ const App = () => {
 
   const currentTheme = themes[mode];
 
+  const timeoutsRef = useRef([]);
+
+  const clearTimeouts = () => {
+    timeoutsRef.current.forEach(clearTimeout);
+    timeoutsRef.current = [];
+  };
+
   // Reset state when mode changes
   useEffect(() => {
+    setIsTransmitting(false);
+    isTransmittingRef.current = false;
+    clearTimeouts();
     setTransmissionState('idle');
     setQber(0);
     setAttackerActive(false);
+    setDirection('ltr');
   }, [mode]);
 
-  const runSimulation = () => {
-    setTransmissionState('sending');
-    
-    // SLOWED DOWN: Intercept happens at 2000ms instead of 1000ms
-    setTimeout(() => {
-      if (attackerActive) {
-        setTransmissionState('intercepted');
-        if (mode === 'qkd') {
-          // Attacker measuring photons collapses the state, causing high QBER
-          setQber(Math.floor(Math.random() * 25) + 25); // 25-50% error rate
-        } else {
-          setQber(0);
-        }
-      }
-    }, 2000); 
+  const runSimulation = (dir = 'ltr') => {
+    setDirection(dir);
+    clearTimeouts();
+    setTransmissionState('idle');
+    setQber(0);
 
-    // SLOWED DOWN: Final state reached at 4500ms instead of 2500ms
-    setTimeout(() => {
-      if (mode === 'qkd' && attackerActive) {
-        setTransmissionState('aborted'); // Protocol aborts due to high QBER
-      } else {
-        setTransmissionState('received');
-      }
-    }, 4500); 
+    if (!isTransmittingRef.current) return;
+
+    // Brief delay to allow the DOM to reset to idle state
+    const t1 = setTimeout(() => {
+      setTransmissionState('sending');
+
+      // Start animation
+      const t2 = setTimeout(() => {
+        setTransmissionState('moving');
+      }, 100);
+
+      // SLOWED DOWN: Intercept happens halfway
+      const t3 = setTimeout(() => {
+        setTransmissionState(prevState => {
+          // If attacker is active when we reach halfway, switch to intercepted
+          return attackerActiveRef.current ? 'intercepted' : prevState;
+        });
+      }, 2250); 
+
+      // Final state reached
+      const t4 = setTimeout(() => {
+        if (mode === 'qkd' && attackerActiveRef.current) {
+          setQber(Math.floor(Math.random() * 25) + 25); // 25-50% error rate
+          setTransmissionState('aborted'); // Protocol aborts due to high QBER
+        } else {
+          setTransmissionState('received');
+        }
+        
+        // Loop if still transmitting
+        if (isTransmittingRef.current) {
+          const t5 = setTimeout(() => {
+            if (runSimulationRef.current) {
+              runSimulationRef.current(dir === 'ltr' ? 'rtl' : 'ltr');
+            }
+          }, 1500); // Wait 1.5s before sending next packet
+          timeoutsRef.current.push(t5);
+        }
+      }, 4550); 
+
+      timeoutsRef.current.push(t2, t3, t4);
+    }, 100);
+
+    timeoutsRef.current.push(t1);
+  };
+
+  useEffect(() => {
+    runSimulationRef.current = runSimulation;
+  });
+
+  const toggleTransmission = () => {
+    if (isTransmitting) {
+      setIsTransmitting(false);
+      isTransmittingRef.current = false;
+      clearTimeouts();
+      setTransmissionState('idle');
+      setQber(0);
+      setDirection('ltr');
+    } else {
+      setIsTransmitting(true);
+      isTransmittingRef.current = true;
+      runSimulation('ltr');
+    }
+  };
+
+  const handleAttackerToggle = () => {
+    setAttackerActive(!attackerActive);
   };
 
   const renderResourceImpact = () => {
     // Relative baseline metrics per single connection handshake
     const metrics = {
-      rsa: { id: 'rsa', name: 'RSA-3072', cpuFactor: 100, keySize: 384, cipherSize: 384, bufferMultiplier: 1.5, themeId: 'classical' },
-      ecc: { id: 'ecc', name: 'ECC (P-256)', cpuFactor: 40, keySize: 32, cipherSize: 32, bufferMultiplier: 1.0, themeId: 'classical' },
-      mlkem: { id: 'mlkem', name: 'ML-KEM-768 (PQC)', cpuFactor: 15, keySize: 1184, cipherSize: 1088, bufferMultiplier: 12.0, themeId: 'pqc' }
+      rsa: { id: 'rsa', name: 'Classical RSA/ECC', cpuFactor: 100, keySize: 384, cipherSize: 384, bufferMultiplier: 1.5, themeId: 'classical' },
+      ecc: { id: 'ecc', name: 'Classical ECC', cpuFactor: 40, keySize: 32, cipherSize: 32, bufferMultiplier: 1.0, themeId: 'classical' },
+      mlkem: { id: 'mlkem', name: 'Post-Quantum key material', cpuFactor: 15, keySize: 1184, cipherSize: 1088, bufferMultiplier: 12.0, themeId: 'pqc' }
     };
 
     const calculateLoad = (algo) => {
@@ -167,7 +240,7 @@ const App = () => {
                 })}
               </div>
               <div className="mt-6 text-xs text-slate-500 italic leading-relaxed">
-                * CPU cycles required for key generation and encapsulation. ML-KEM lattice math is highly optimized for modern SIMD.
+                * CPU cycles required for key generation and encapsulation. Post-quantum key operations can increase computational overhead.
               </div>
             </div>
 
@@ -198,7 +271,7 @@ const App = () => {
                 })}
               </div>
                <div className="mt-6 text-xs text-slate-500 italic leading-relaxed">
-                * Pure payload size on the wire. ML-KEM pushes TLS handshakes well over standard 1500B MTU limits, causing fragmentation.
+                * Pure payload size on the wire. Post-quantum public key material increases handshake size and may cause fragmentation.
               </div>
             </div>
 
@@ -247,7 +320,10 @@ const App = () => {
         {/* Sender (Alice/A1 User/Vienna 1) */}
         <div className="z-10 flex flex-col items-center text-center">
           <div className="w-20 h-20 bg-white rounded-xl flex items-center justify-center border-2 border-slate-300 shadow-md relative">
-            <div className={`absolute -right-2 -top-2 w-4 h-4 rounded-full ${transmissionState === 'idle' ? 'bg-slate-300' : 'bg-green-500 animate-pulse'} shadow-sm`}></div>
+            <div className={`absolute -right-2 -top-2 w-4 h-4 rounded-full ${
+              ((transmissionState !== 'idle' && transmissionState !== 'received' && transmissionState !== 'aborted' && direction === 'ltr') || 
+               ((transmissionState === 'received' || transmissionState === 'aborted') && direction === 'rtl')) 
+               ? 'bg-green-500 animate-pulse' : 'bg-slate-300'} shadow-sm`}></div>
             {mode === 'qkd' ? <Server className="text-slate-700" size={40} /> : <Smartphone className="text-slate-700" size={40} />}
           </div>
           <span className="mt-3 font-black text-slate-800 tracking-widest uppercase text-[10px] sm:text-xs leading-tight whitespace-pre-line">
@@ -257,95 +333,99 @@ const App = () => {
 
         {/* Network Channels */}
         <div className="flex-1 h-full relative flex flex-col justify-center px-4 sm:px-8">
-          
-          {/* Standard IP Channel (Always present) */}
-          <div className="relative w-full h-12 mb-6 flex items-center">
-            <div className="absolute w-full h-2 bg-slate-100 top-1/2 transform -translate-y-1/2 border-t border-b border-slate-200"></div>
-            <span className="absolute -top-6 left-1/2 transform -translate-x-1/2 text-[10px] sm:text-xs text-slate-600 font-mono tracking-widest bg-white px-3 border border-slate-200 rounded-full shadow-sm">
-              PUBLIC IP NETWORK (LAYER 3)
-            </span>
+          <div className="relative w-full flex flex-col">
             
-            {/* Packet Animation - Double Slower */}
-            {transmissionState !== 'idle' && (
-              <div className={`absolute top-1/2 transform -translate-y-1/2 transition-all duration-[2000ms] ease-linear ${transmissionState === 'sending' ? 'left-0' : transmissionState === 'intercepted' ? 'left-1/2' : 'left-full'} -ml-6 z-20`}>
-                <div className={`
-                  flex items-center justify-center rounded-md shadow-lg
-                  ${mode === 'classical' ? `w-14 h-8 ${currentTheme.packetBg} border-2 border-white` : ''}
-                  ${mode === 'pqc' ? `w-36 h-12 ${currentTheme.packetBg} border-2 border-white shadow-[0_4px_15px_rgba(5,150,105,0.4)]` : ''}
-                  ${mode === 'qkd' ? `w-12 h-6 bg-slate-500 border border-slate-300` : ''}
-                `}>
-                  {mode === 'pqc' && <span className={`text-xs font-black ${currentTheme.packetText} px-2 tracking-wider`}>ML-KEM (1184B)</span>}
-                  {mode === 'classical' && <span className={`text-xs font-black ${currentTheme.packetText} tracking-wider`}>RSA</span>}
-                  {mode === 'qkd' && <span className="text-[10px] text-white font-bold tracking-widest">AUTH</span>}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Dedicated Quantum Channel (Only QKD) */}
-          {mode === 'qkd' && (
-            <div className="relative w-full h-20 flex items-center mt-12">
-              {/* Link 1 (Vienna 1 to Node) */}
-              <div className="absolute w-[47%] h-3 bg-purple-100 top-1/2 transform -translate-y-1/2 left-0 rounded-l-full shadow-inner border border-purple-300"></div>
-              {/* Link 2 (Node to Vienna 2) */}
-              <div className="absolute w-[47%] h-3 bg-purple-100 top-1/2 transform -translate-y-1/2 right-0 rounded-r-full shadow-inner border border-purple-300"></div>
+            {/* Standard IP Channel (Always present) */}
+            <div className={`relative w-full h-12 flex items-center ${mode === 'qkd' ? 'mb-12' : ''}`}>
+              <div className="absolute w-full h-2 bg-slate-100 top-1/2 transform -translate-y-1/2 border-t border-b border-slate-200"></div>
+              <span className="absolute -top-6 left-1/2 transform -translate-x-1/2 text-[10px] sm:text-xs text-slate-600 font-mono tracking-widest bg-white px-3 border border-slate-200 rounded-full shadow-sm">
+                PUBLIC IP NETWORK (LAYER 3)
+              </span>
               
-              {/* Trusted Repeater Node */}
-              <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center z-20 bg-slate-50 p-2 rounded-xl">
-                <div className="w-12 h-12 bg-white rounded-lg border-2 border-purple-300 flex items-center justify-center shadow-md relative">
-                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full animate-pulse border border-white"></div>
-                  <Unlock className="text-purple-600" size={20} />
-                </div>
-                <span className="mt-2 text-[10px] font-black text-purple-800 text-center leading-tight tracking-widest bg-purple-50 px-2 py-1 rounded border border-purple-200">TRUSTED<br/>REPEATER</span>
-              </div>
-
-              <span className="absolute -top-5 left-1/4 transform -translate-x-1/2 text-[10px] sm:text-xs text-purple-700 font-mono tracking-widest flex items-center bg-purple-50 px-2 rounded-full border border-purple-200 shadow-sm">
-                <Zap size={12} className="mr-2 text-purple-600"/> QKD LINK 1
-              </span>
-              <span className="absolute -top-5 left-3/4 transform -translate-x-1/2 text-[10px] sm:text-xs text-purple-700 font-mono tracking-widest flex items-center bg-purple-50 px-2 rounded-full border border-purple-200 shadow-sm">
-                <Zap size={12} className="mr-2 text-purple-600"/> QKD LINK 2
-              </span>
-
-              {/* Photon Animation Link 1 - Double Slower */}
+              {/* Packet Animation - Double Slower */}
               {transmissionState !== 'idle' && (
-                <div className={`absolute top-1/2 transform -translate-y-1/2 transition-all duration-[2000ms] ease-linear ${transmissionState === 'sending' ? 'left-0' : transmissionState === 'intercepted' ? 'left-[25%]' : 'left-[50%]'} -ml-3 z-10`}>
-                   <div className="flex space-x-2">
-                     <div className={`w-3 h-3 rounded-full ${attackerActive && transmissionState !== 'sending' ? 'bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.6)]' : 'bg-purple-600 shadow-[0_0_10px_rgba(147,51,234,0.6)]'}`}></div>
-                     <div className={`w-3 h-3 rounded-full ${attackerActive && transmissionState !== 'sending' ? 'bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.6)]' : 'bg-purple-600 shadow-[0_0_10px_rgba(147,51,234,0.6)]'}`}></div>
-                   </div>
-                </div>
-              )}
-
-              {/* Photon Animation Link 2 (Only if not intercepted) - Double Slower */}
-              {transmissionState !== 'idle' && transmissionState !== 'aborted' && transmissionState !== 'intercepted' && (
-                 <div className={`absolute top-1/2 transform -translate-y-1/2 transition-all duration-[2000ms] delay-[2000ms] ease-linear ${transmissionState === 'sending' ? 'left-[50%]' : 'left-full'} -ml-3 z-10 ${transmissionState === 'sending' ? 'opacity-0' : 'opacity-100'}`}>
-                   <div className="flex space-x-2">
-                     <div className="w-3 h-3 rounded-full bg-purple-600 shadow-[0_0_10px_rgba(147,51,234,0.6)]"></div>
-                     <div className="w-3 h-3 rounded-full bg-purple-600 shadow-[0_0_10px_rgba(147,51,234,0.6)]"></div>
-                   </div>
+                <div className={`absolute top-1/2 transform -translate-y-1/2 transition-all duration-[4500ms] ease-linear ${transmissionState === 'sending' ? (direction === 'ltr' ? 'left-0' : 'left-full') : (direction === 'ltr' ? 'left-full' : 'left-0')} -ml-6 z-20`}>
+                      <div className={`relative flex items-center justify-center rounded-2xl shadow-lg transition-all duration-500 ${mode === 'classical' ? 'w-20 h-10 bg-blue-600 border-2 border-blue-700' : ''} ${mode === 'pqc' ? 'w-40 h-12 bg-emerald-600 border-2 border-emerald-700' : ''} ${mode === 'qkd' ? 'w-32 h-10 bg-gradient-to-r from-violet-500 via-fuchsia-500 to-purple-700 border border-purple-300' : ''}`}>
+                    {mode === 'classical' && (
+                      <div className="flex items-center space-x-2 text-white text-[10px] uppercase font-black">
+                        <Package size={18} className="text-white" />
+                        <Lock size={14} className="text-white" />
+                      </div>
+                    )}
+                    {mode === 'pqc' && (
+                      <div className="flex items-center justify-center w-full space-x-2 text-white text-[10px] uppercase font-black">
+                        <Package size={28} className="text-white" />
+                        <div className="flex flex-col space-y-1">
+                          <div className="flex space-x-1">
+                            <Lock size={12} className="text-white" />
+                            <Lock size={12} className="text-white" />
+                            <Lock size={12} className="text-white" />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    {mode === 'qkd' && (
+                      <div className="flex items-center space-x-2 text-white text-[10px] uppercase font-black relative">
+                        <Sparkles size={16} className="text-amber-300 absolute -top-3 -left-3 animate-pulse" />
+                        <Package size={22} className="text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]" />
+                        <Zap size={14} className="text-white" />
+                        <Sparkles size={16} className="text-amber-300 absolute -bottom-3 -right-3 animate-pulse delay-75" />
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
-          )}
 
-          {/* Attacker Node (Amber Warning Theme) */}
-          <div className={`absolute top-1/2 ${mode === 'qkd' ? 'left-[25%]' : 'left-1/2'} transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center z-30 transition-all duration-500`}>
-            <div className={`w-16 h-16 rounded-xl bg-white border-2 flex items-center justify-center transition-all duration-300 ${attackerActive ? 'border-amber-500 shadow-[0_8px_20px_rgba(245,158,11,0.3)] scale-110' : 'border-slate-200 opacity-60'}`}>
-              <UserX className={attackerActive ? 'text-amber-500' : 'text-slate-400'} size={32} />
-            </div>
-            <span className={`mt-3 text-sm font-black tracking-widest uppercase bg-white/80 px-2 rounded ${attackerActive ? 'text-amber-600' : 'text-slate-400'}`}>Attacker</span>
-            {transmissionState === 'intercepted' && (
-              <span className="absolute -bottom-8 text-[11px] font-bold text-amber-900 bg-amber-200 border border-amber-400 px-3 py-1 rounded-full whitespace-nowrap shadow-md">
-                {mode === 'qkd' ? 'MEASURING PHOTONS...' : 'COPYING PACKETS...'}
-              </span>
+            {/* Dedicated Quantum Channel (Only QKD) */}
+            {mode === 'qkd' && (
+              <div className="relative w-full h-12 flex items-center mt-12">
+                {/* Single Quantum Link */}
+                <div className="absolute w-full h-3 bg-purple-100 top-1/2 transform -translate-y-1/2 left-0 rounded-full shadow-inner border border-purple-300"></div>
+
+                <span className="absolute -top-5 left-1/2 transform -translate-x-1/2 text-[10px] sm:text-xs text-purple-700 font-mono tracking-widest flex items-center bg-purple-50 px-3 rounded-full border border-purple-200 shadow-sm">
+                  <Zap size={12} className="mr-2 text-purple-600"/> DEDICATED QUANTUM LINK (LAYER 1)
+                </span>
+
+                {/* Photon Animation Link - Double Slower */}
+                {transmissionState !== 'idle' && (
+                  <div className={`absolute top-1/2 transform -translate-y-1/2 transition-all duration-[4500ms] ease-linear ${transmissionState === 'sending' ? (direction === 'ltr' ? 'left-0' : 'left-full') : (direction === 'ltr' ? 'left-full' : 'left-0')} -ml-3 z-10`}>
+                    <div className="flex space-x-2">
+                      <div className={`w-3 h-3 rounded-full ${attackerActive && transmissionState !== 'sending' ? 'bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.6)]' : 'bg-purple-600 shadow-[0_0_10px_rgba(147,51,234,0.6)]'}`}></div>
+                      <div className={`w-3 h-3 rounded-full ${attackerActive && transmissionState !== 'sending' ? 'bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.6)]' : 'bg-purple-600 shadow-[0_0_10px_rgba(147,51,234,0.6)]'}`}></div>
+                    </div>
+                  </div>
+                )}
+              </div>
             )}
+
+            {/* Attacker Node (Amber Warning Theme) */}
+            <div className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center z-30 transition-all duration-500 pointer-events-none`}>
+              <div className="pointer-events-auto flex flex-col items-center relative">
+                {attackerActive && mode === 'qkd' && (
+                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-1 bg-amber-400 h-[240px] -z-10 animate-pulse rounded-full opacity-60"></div>
+                )}
+                <div className={`w-16 h-16 rounded-xl bg-white border-2 flex items-center justify-center transition-all duration-300 ${attackerActive ? 'border-amber-500 shadow-[0_8px_20px_rgba(245,158,11,0.3)] scale-110' : 'border-slate-200 opacity-60'}`}>
+                  <UserX className={attackerActive ? 'text-amber-500' : 'text-slate-400'} size={32} />
+                </div>
+                <span className={`mt-3 text-sm font-black tracking-widest uppercase bg-white/80 px-2 rounded ${attackerActive ? 'text-amber-600' : 'text-slate-400'}`}>Attacker</span>
+                {transmissionState === 'intercepted' && (
+                  <span className="absolute -bottom-8 text-[11px] font-bold text-amber-900 bg-amber-200 border border-amber-400 px-3 py-1 rounded-full whitespace-nowrap shadow-md">
+                    {mode === 'qkd' ? 'MEASURING PHOTONS...' : 'COPYING PACKETS...'}
+                  </span>
+                )}
+              </div>
+            </div>
           </div>
         </div>
 
         {/* Receiver (Bob/A1 App/Vienna 2) */}
         <div className="z-10 flex flex-col items-center text-center">
           <div className="w-20 h-20 bg-white rounded-xl flex items-center justify-center border-2 border-slate-300 shadow-md relative">
-            <div className={`absolute -left-2 -top-2 w-4 h-4 rounded-full ${transmissionState === 'received' ? 'bg-green-500 shadow-sm animate-pulse' : 'bg-slate-300'}`}></div>
+            <div className={`absolute -left-2 -top-2 w-4 h-4 rounded-full ${
+              ((transmissionState !== 'idle' && transmissionState !== 'received' && transmissionState !== 'aborted' && direction === 'rtl') || 
+               ((transmissionState === 'received' || transmissionState === 'aborted') && direction === 'ltr')) 
+               ? 'bg-green-500 animate-pulse shadow-sm' : 'bg-slate-300'} shadow-sm`}></div>
             {mode === 'qkd' ? <HardDrive className="text-slate-700" size={40} /> : <LayoutTemplate className="text-slate-700" size={40} />}
           </div>
           <span className="mt-3 font-black text-slate-800 tracking-widest uppercase text-[10px] sm:text-xs leading-tight whitespace-pre-line">
@@ -420,14 +500,13 @@ const App = () => {
               <div className="bg-white border border-slate-200 rounded-xl p-8 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-6">
                 <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
                   <button 
-                    onClick={runSimulation}
-                    disabled={transmissionState !== 'idle' && transmissionState !== 'received' && transmissionState !== 'aborted'}
-                    className={`w-full sm:w-auto ${A1_RED_BG} hover:bg-red-700 text-white px-8 py-4 rounded-lg font-black tracking-widest uppercase shadow-md hover:-translate-y-0.5 hover:shadow-lg disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none transition-all duration-200 outline-none`}
+                    onClick={toggleTransmission}
+                    className={`w-full sm:w-auto ${A1_RED_BG} hover:bg-red-700 text-white px-8 py-4 rounded-lg font-black tracking-widest uppercase shadow-md hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200 outline-none`}
                   >
-                    Initiate Key Exchange
+                    {isTransmitting ? 'Stop Transmission' : 'Initiate Transmission'}
                   </button>
                   <button 
-                    onClick={() => setAttackerActive(!attackerActive)}
+                    onClick={handleAttackerToggle}
                     className={`w-full sm:w-auto px-8 py-4 rounded-lg font-black tracking-widest uppercase border-2 transition-all duration-200 shadow-sm hover:-translate-y-0.5 outline-none ${attackerActive ? 'bg-amber-50 border-amber-400 text-amber-700 hover:bg-amber-100 shadow-[0_4px_10px_rgba(245,158,11,0.2)]' : 'bg-white border-slate-300 text-slate-700 hover:border-slate-400 hover:text-slate-900 hover:bg-slate-50'}`}
                   >
                     {attackerActive ? 'Disable Attacker' : 'Simulate Attack (MitM)'}
@@ -439,7 +518,7 @@ const App = () => {
                   <div className="text-xs text-slate-600 mb-1 font-bold uppercase tracking-widest">Network Status</div>
                   <div className="font-mono font-black text-xl tracking-wider">
                     {transmissionState === 'idle' && <span className="text-slate-500">READY</span>}
-                    {transmissionState === 'sending' && <span className="text-blue-600 animate-pulse">TRANSMITTING...</span>}
+                    {(transmissionState === 'sending' || transmissionState === 'moving') && <span className="text-blue-600 animate-pulse">TRANSMITTING...</span>}
                     {transmissionState === 'intercepted' && <span className="text-amber-600 animate-pulse">INTERCEPTED!</span>}
                     {transmissionState === 'received' && <span className="text-green-600">SECURE</span>}
                     {transmissionState === 'aborted' && <span className="text-red-600 flex items-center justify-center sm:justify-end"><ShieldAlert size={20} className="mr-2"/> ABORTED</span>}
@@ -461,8 +540,8 @@ const App = () => {
                     <div className="text-slate-600 mb-2 font-bold uppercase tracking-wider text-xs">OSI Layer Operation</div>
                     <div className={`font-mono ${currentTheme.textPrimary} ${currentTheme.bgLight} p-4 rounded-lg border ${currentTheme.borderLight} font-bold text-base transition-colors duration-500`}>
                       {mode === 'classical' && "Layer 7 (Software/Math)"}
-                      {mode === 'pqc' && "Layer 7 (Software/Lattice Math)"}
-                      {mode === 'qkd' && "Layer 1 (Hardware/Physics)"}
+                      {mode === 'pqc' && "Layer 7 (Software/Post-Quantum Math)"}
+                      {mode === 'qkd' && "Layer 1 (Hardware/Quantum Light)"}
                     </div>
                   </div>
 
@@ -470,7 +549,7 @@ const App = () => {
                     <div className="text-slate-600 mb-2 font-bold uppercase tracking-wider text-xs">Infrastructure Requirement</div>
                     <div className={`font-mono p-4 rounded-lg border leading-relaxed transition-colors duration-500 ${currentTheme.bgLight} ${currentTheme.borderLight} ${currentTheme.textPrimary} font-medium`}>
                       {mode === 'classical' && "Standard IP Network. No hardware changes required."}
-                      {mode === 'pqc' && "Standard IP Network. Requires TLS 1.3 infrastructure updates."}
+                      {mode === 'pqc' && "Standard IP network. Requires post-quantum handshake upgrades."}
                       {mode === 'qkd' && "Dedicated dark fiber required. Highly secure physical bunkers (Trusted Nodes) required every ~100km."}
                     </div>
                   </div>
@@ -480,8 +559,8 @@ const App = () => {
                     <div className={`font-mono ${currentTheme.textPrimary} ${currentTheme.bgLight} p-4 rounded-lg border ${currentTheme.borderLight} flex items-center justify-between font-bold transition-colors duration-500`}>
                       <span>
                         {mode === 'classical' && "Small (e.g., 32B for ECC)"}
-                        {mode === 'pqc' && <span className="text-emerald-800">Massive (1,184B for ML-KEM)</span>}
-                        {mode === 'qkd' && "N/A (Single Photons)"}
+                        {mode === 'pqc' && <span className="text-emerald-800">Massive public key metadata</span>}
+                        {mode === 'qkd' && "N/A (Quantum light pulses)"}
                       </span>
                       {mode === 'pqc' && <Activity size={20} className="text-emerald-600 animate-pulse"/>}
                     </div>
