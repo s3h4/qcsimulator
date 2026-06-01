@@ -118,15 +118,15 @@ const App = () => {
         if (attackerActiveRef.current) {
           setTransmissionState('intercepted');
         }
-      }, 600); // 500ms to reach middle
+      }, 1100); // 1000ms to reach middle
 
       const t3_5 = setTimeout(() => {
         if (attackerActiveRef.current) {
           setTransmissionState('moving_after_intercept');
         }
-      }, 1600); // Pauses for 1000ms
+      }, 2100); // Pauses for 1000ms
 
-      const finalTime = attackerActiveRef.current ? 2100 : 1100;
+      const finalTime = attackerActiveRef.current ? 3100 : 2100;
 
       // Final state reached
       const t4 = setTimeout(() => {
