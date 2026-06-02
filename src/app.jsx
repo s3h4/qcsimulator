@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Network, Server, Shield, ShieldAlert, Zap, Activity, UserX, Lock, Unlock, HardDrive, Wifi, Cpu, Database, BarChart2, Smartphone, LayoutTemplate, Package, Sparkles } from 'lucide-react';
+import a1Logo from '../A1_red_logo.png';
 
 const App = () => {
   const [activeTab, setActiveTab] = useState('architecture'); // architecture, resources
@@ -26,20 +27,21 @@ const App = () => {
   // A1 Brand Identity
   const A1_RED_BG = "bg-[#E50000]";
   const A1_RED_TEXT = "text-[#E50000]";
+  const A1_RED_BORDER = "border-[#E50000]";
 
-  // Strict Theme Mapping for Tailwind JIT Compiler
+  // Dark Theme Mapping for Tailwind JIT Compiler
   const themes = {
     classical: {
       id: 'classical',
       name: 'Classical Encryption',
       desc: 'Software / Algebraic security',
-      btnActive: 'border-blue-600 bg-blue-50 shadow-[0_4px_15px_rgba(37,99,235,0.15)]',
-      textPrimary: 'text-blue-800',
-      textAccent: 'text-blue-600',
-      bgLight: 'bg-blue-50',
-      borderLight: 'border-blue-200',
+      btnActive: 'border-blue-500 bg-blue-900/20 shadow-[0_4px_15px_rgba(59,130,246,0.15)]',
+      textPrimary: 'text-blue-400',
+      textAccent: 'text-blue-500',
+      bgLight: 'bg-blue-900/20',
+      borderLight: 'border-blue-800/50',
       borderMain: 'border-blue-500',
-      barColor: 'bg-blue-600',
+      barColor: 'bg-blue-500',
       packetBg: 'bg-blue-600',
       packetText: 'text-white'
     },
@@ -47,13 +49,13 @@ const App = () => {
       id: 'pqc',
       name: 'Post-Quantum Cryptography',
       desc: 'Software / Post-Quantum security',
-      btnActive: 'border-emerald-600 bg-emerald-50 shadow-[0_4px_15px_rgba(5,150,105,0.15)]',
-      textPrimary: 'text-emerald-800',
-      textAccent: 'text-emerald-600',
-      bgLight: 'bg-emerald-50',
-      borderLight: 'border-emerald-200',
+      btnActive: 'border-emerald-500 bg-emerald-900/20 shadow-[0_4px_15px_rgba(16,185,129,0.15)]',
+      textPrimary: 'text-emerald-400',
+      textAccent: 'text-emerald-500',
+      bgLight: 'bg-emerald-900/20',
+      borderLight: 'border-emerald-800/50',
       borderMain: 'border-emerald-500',
-      barColor: 'bg-emerald-600',
+      barColor: 'bg-emerald-500',
       packetBg: 'bg-emerald-600',
       packetText: 'text-white'
     },
@@ -61,13 +63,13 @@ const App = () => {
       id: 'qkd',
       name: 'Quantum Key Distribution',
       desc: 'Hardware / Quantum light',
-      btnActive: 'border-purple-600 bg-purple-50 shadow-[0_4px_15px_rgba(147,51,234,0.15)]',
-      textPrimary: 'text-purple-800',
-      textAccent: 'text-purple-600',
-      bgLight: 'bg-purple-50',
-      borderLight: 'border-purple-200',
+      btnActive: 'border-purple-500 bg-purple-900/20 shadow-[0_4px_15px_rgba(168,85,247,0.15)]',
+      textPrimary: 'text-purple-400',
+      textAccent: 'text-purple-500',
+      bgLight: 'bg-purple-900/20',
+      borderLight: 'border-purple-800/50',
       borderMain: 'border-purple-500',
-      barColor: 'bg-purple-600',
+      barColor: 'bg-purple-500',
       packetBg: 'bg-purple-600',
       packetText: 'text-white'
     }
@@ -189,16 +191,15 @@ const App = () => {
 
   const getPacketDuration = () => {
     if (transmissionState === 'moving_to_intercept' || transmissionState === 'moving_after_intercept') {
-      return 'duration-[500ms]';
+      return 'duration-[1000ms]';
     }
     if (transmissionState === 'intercepted') {
       return 'duration-[0ms]';
     }
-    return 'duration-[1000ms]';
+    return 'duration-[2000ms]';
   };
 
   const renderResourceImpact = () => {
-    // Relative baseline metrics per single connection handshake
     const metrics = {
       rsa: { id: 'rsa', name: 'Classical RSA/ECC', cpuFactor: 100, keySize: 384, cipherSize: 384, bufferMultiplier: 1.5, themeId: 'classical' },
       ecc: { id: 'ecc', name: 'Classical ECC', cpuFactor: 40, keySize: 32, cipherSize: 32, bufferMultiplier: 1.0, themeId: 'classical' },
@@ -214,19 +215,19 @@ const App = () => {
     };
 
     return (
-      <div className="space-y-6 animate-in fade-in duration-500">
-        <div className="bg-white border border-slate-200 rounded-2xl p-8 shadow-xl">
-          <h2 className="text-2xl font-black text-slate-900 mb-4 flex items-center tracking-tight">
+      <div className="space-y-6 animate-in fade-in duration-500 w-full max-w-7xl mx-auto">
+        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-8 shadow-xl">
+          <h2 className="text-2xl font-black text-zinc-100 mb-4 flex items-center tracking-tight">
             <Activity className={`mr-3 ${currentTheme.textAccent} w-8 h-8`} /> Edge Terminations Simulator
           </h2>
-          <p className="text-base text-slate-600 mb-8 border-l-4 border-slate-300 pl-4">
-            Adjust the connections per second to see how Post-Quantum Cryptography trades CPU efficiency for massive network and memory overhead in a highly concurrent environment (e.g., Telco Edge or Ingress Load Balancer).
+          <p className="text-base text-zinc-400 mb-8 border-l-4 border-zinc-700 pl-4">
+            Adjust the connections per second to see how Post-Quantum Cryptography trades CPU efficiency for massive network and memory overhead in a highly concurrent environment.
           </p>
 
           <div className={`${currentTheme.bgLight} p-6 rounded-xl border ${currentTheme.borderLight} mb-10 transition-colors duration-500`}>
             <div className="flex justify-between text-base mb-4">
               <span className={`${currentTheme.textPrimary} font-bold uppercase tracking-wider`}>Connections Per Second (CPS)</span>
-              <span className={`font-mono font-bold bg-white px-3 py-1 rounded border ${currentTheme.borderLight} ${currentTheme.textAccent} shadow-sm`}>
+              <span className={`font-mono font-bold bg-zinc-950 px-3 py-1 rounded border ${currentTheme.borderLight} ${currentTheme.textAccent} shadow-sm`}>
                 {cps.toLocaleString()} req/s
               </span>
             </div>
@@ -237,16 +238,16 @@ const App = () => {
               step="100"
               value={cps}
               onChange={(e) => setCps(Number(e.target.value))}
-              className={`w-full h-3 bg-white rounded-lg appearance-none cursor-pointer border border-slate-300 outline-none focus:ring-2 transition-shadow`}
-              style={{ accentColor: mode === 'classical' ? '#2563eb' : (mode === 'pqc' ? '#059669' : '#9333ea') }}
+              className={`w-full h-3 bg-zinc-800 rounded-lg appearance-none cursor-pointer border border-zinc-700 outline-none focus:ring-2 transition-shadow`}
+              style={{ accentColor: mode === 'classical' ? '#3b82f6' : (mode === 'pqc' ? '#10b981' : '#a855f7') }}
             />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* CPU Metric Box */}
-            <div className={`bg-white p-6 rounded-xl border ${currentTheme.borderLight} shadow-md relative overflow-hidden transition-colors duration-500`}>
+            <div className={`bg-zinc-800/50 p-6 rounded-xl border ${currentTheme.borderLight} shadow-md relative overflow-hidden transition-colors duration-500`}>
               <div className={`absolute top-0 left-0 w-full h-1 ${currentTheme.barColor} transition-colors duration-500`}></div>
-              <div className="flex items-center mb-6 text-slate-800">
+              <div className="flex items-center mb-6 text-zinc-200">
                 <Cpu className={`mr-3 ${currentTheme.textAccent}`} size={24}/> 
                 <span className="font-black tracking-wide">Relative CPU Load</span>
               </div>
@@ -254,30 +255,27 @@ const App = () => {
                 {['rsa', 'ecc', 'mlkem'].map(algo => {
                   const data = calculateLoad(algo);
                   const isSelected = (mode === 'pqc' && data.themeId === 'pqc') || (mode === 'classical' && data.themeId === 'classical');
-                  const barBg = isSelected ? currentTheme.barColor : 'bg-slate-300';
+                  const barBg = isSelected ? currentTheme.barColor : 'bg-zinc-600';
                   
                   return (
                     <div key={algo} className={`relative transition-all duration-300 ${isSelected ? 'opacity-100 scale-[1.02]' : 'opacity-40 grayscale'}`}>
                       <div className="flex justify-between text-sm mb-2">
-                        <span className="text-slate-800 font-bold">{data.name}</span>
-                        <span className="font-mono text-slate-900 font-bold">{data.cpuLoad.toLocaleString()} units</span>
+                        <span className="text-zinc-200 font-bold">{data.name}</span>
+                        <span className="font-mono text-zinc-300 font-bold">{data.cpuLoad.toLocaleString()} units</span>
                       </div>
-                      <div className="w-full bg-slate-100 rounded-full h-3 border border-slate-200">
+                      <div className="w-full bg-zinc-900 rounded-full h-3 border border-zinc-700">
                         <div className={`h-3 rounded-full ${barBg} transition-all duration-500 ease-out`} style={{ width: `${Math.min((data.cpuLoad / 50000) * 100, 100)}%` }}></div>
                       </div>
                     </div>
                   );
                 })}
               </div>
-              <div className="mt-6 text-xs text-slate-500 italic leading-relaxed">
-                * CPU cycles required for key generation and encapsulation. Post-quantum key operations can increase computational overhead.
-              </div>
             </div>
 
             {/* Bandwidth Metric Box */}
-            <div className={`bg-white p-6 rounded-xl border ${currentTheme.borderLight} shadow-md relative overflow-hidden transition-colors duration-500`}>
+            <div className={`bg-zinc-800/50 p-6 rounded-xl border ${currentTheme.borderLight} shadow-md relative overflow-hidden transition-colors duration-500`}>
               <div className={`absolute top-0 left-0 w-full h-1 ${currentTheme.barColor} transition-colors duration-500`}></div>
-              <div className="flex items-center mb-6 text-slate-800">
+              <div className="flex items-center mb-6 text-zinc-200">
                 <Activity className={`mr-3 ${currentTheme.textAccent}`} size={24}/> 
                 <span className="font-black tracking-wide">Network Bandwidth</span>
               </div>
@@ -285,30 +283,27 @@ const App = () => {
                 {['rsa', 'ecc', 'mlkem'].map(algo => {
                   const data = calculateLoad(algo);
                   const isSelected = (mode === 'pqc' && data.themeId === 'pqc') || (mode === 'classical' && data.themeId === 'classical');
-                  const barBg = isSelected ? currentTheme.barColor : 'bg-slate-300';
+                  const barBg = isSelected ? currentTheme.barColor : 'bg-zinc-600';
 
                   return (
                     <div key={algo} className={`relative transition-all duration-300 ${isSelected ? 'opacity-100 scale-[1.02]' : 'opacity-40 grayscale'}`}>
                       <div className="flex justify-between text-sm mb-2">
-                        <span className="text-slate-800 font-bold">{data.name}</span>
-                        <span className="font-mono text-slate-900 font-bold">{(data.bandwidthKBps / 1024).toFixed(2)} MB/s</span>
+                        <span className="text-zinc-200 font-bold">{data.name}</span>
+                        <span className="font-mono text-zinc-300 font-bold">{(data.bandwidthKBps / 1024).toFixed(2)} MB/s</span>
                       </div>
-                      <div className="w-full bg-slate-100 rounded-full h-3 border border-slate-200">
+                      <div className="w-full bg-zinc-900 rounded-full h-3 border border-zinc-700">
                         <div className={`h-3 rounded-full ${barBg} transition-all duration-500 ease-out`} style={{ width: `${Math.min((data.bandwidthKBps / 111000) * 100, 100)}%` }}></div>
                       </div>
                     </div>
                   );
                 })}
               </div>
-               <div className="mt-6 text-xs text-slate-500 italic leading-relaxed">
-                * Pure payload size on the wire. Post-quantum public key material increases handshake size and may cause fragmentation.
-              </div>
             </div>
 
             {/* Memory Metric Box */}
-            <div className={`bg-white p-6 rounded-xl border ${currentTheme.borderLight} shadow-md relative overflow-hidden transition-colors duration-500`}>
+            <div className={`bg-zinc-800/50 p-6 rounded-xl border ${currentTheme.borderLight} shadow-md relative overflow-hidden transition-colors duration-500`}>
               <div className={`absolute top-0 left-0 w-full h-1 ${currentTheme.barColor} transition-colors duration-500`}></div>
-              <div className="flex items-center mb-6 text-slate-800">
+              <div className="flex items-center mb-6 text-zinc-200">
                 <Database className={`mr-3 ${currentTheme.textAccent}`} size={24}/> 
                 <span className="font-black tracking-wide">Edge Memory (RAM)</span>
               </div>
@@ -316,23 +311,20 @@ const App = () => {
                 {['rsa', 'ecc', 'mlkem'].map(algo => {
                   const data = calculateLoad(algo);
                   const isSelected = (mode === 'pqc' && data.themeId === 'pqc') || (mode === 'classical' && data.themeId === 'classical');
-                  const barBg = isSelected ? currentTheme.barColor : 'bg-slate-300';
+                  const barBg = isSelected ? currentTheme.barColor : 'bg-zinc-600';
 
                   return (
                     <div key={algo} className={`relative transition-all duration-300 ${isSelected ? 'opacity-100 scale-[1.02]' : 'opacity-40 grayscale'}`}>
                       <div className="flex justify-between text-sm mb-2">
-                        <span className="text-slate-800 font-bold">{data.name}</span>
-                        <span className="font-mono text-slate-900 font-bold">{data.memoryMB.toFixed(2)} GB</span>
+                        <span className="text-zinc-200 font-bold">{data.name}</span>
+                        <span className="font-mono text-zinc-300 font-bold">{data.memoryMB.toFixed(2)} GB</span>
                       </div>
-                      <div className="w-full bg-slate-100 rounded-full h-3 border border-slate-200">
+                      <div className="w-full bg-zinc-900 rounded-full h-3 border border-zinc-700">
                         <div className={`h-3 rounded-full ${barBg} transition-all duration-500 ease-out`} style={{ width: `${Math.min((data.memoryMB / 1.5) * 100, 100)}%` }}></div>
                       </div>
                     </div>
                   );
                 })}
-              </div>
-               <div className="mt-6 text-xs text-slate-500 italic leading-relaxed">
-                * TCP buffers & socket state. Handling fragmented packets requires holding partial data in RAM until reassembly.
               </div>
             </div>
           </div>
@@ -342,21 +334,24 @@ const App = () => {
   };
 
   const renderTopology = () => {
+    const showVerdict = transmissionState === 'moving_after_intercept' || transmissionState === 'received' || transmissionState === 'aborted';
+    const isIntercepting = transmissionState === 'intercepted';
+
     return (
-      <div className="relative w-full h-80 bg-white rounded-xl p-6 flex items-center justify-between overflow-hidden border border-slate-200 shadow-sm">
-        {/* Light Mode Decorative Grid Background */}
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#00000005_1px,transparent_1px),linear-gradient(to_bottom,#00000005_1px,transparent_1px)] bg-[size:24px_24px]"></div>
+      <div className="relative w-full h-96 bg-zinc-900 rounded-xl p-6 flex items-center justify-between overflow-hidden border border-zinc-800 shadow-xl">
+        {/* Dark Mode Decorative Grid Background */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:24px_24px]"></div>
 
         {/* Sender (Alice/A1 User/Vienna 1) */}
-        <div className="z-10 flex flex-col items-center text-center">
-          <div className="w-20 h-20 bg-white rounded-xl flex items-center justify-center border-2 border-slate-300 shadow-md relative">
+        <div className="z-10 flex flex-col items-center text-center w-24">
+          <div className="w-20 h-20 bg-zinc-800 rounded-xl flex items-center justify-center border-2 border-zinc-700 shadow-md relative">
             <div className={`absolute -right-2 -top-2 w-4 h-4 rounded-full ${
               ((transmissionState !== 'idle' && transmissionState !== 'received' && transmissionState !== 'aborted' && direction === 'ltr') || 
                ((transmissionState === 'received' || transmissionState === 'aborted') && direction === 'rtl')) 
-               ? 'bg-green-500 animate-pulse' : 'bg-slate-300'} shadow-sm`}></div>
-            {mode === 'qkd' ? <Server className="text-slate-700" size={40} /> : <Smartphone className="text-slate-700" size={40} />}
+               ? 'bg-emerald-500 animate-pulse' : 'bg-zinc-600'} shadow-sm`}></div>
+            {mode === 'qkd' ? <Server className="text-zinc-300" size={40} /> : <Smartphone className="text-zinc-300" size={40} />}
           </div>
-          <span className="mt-3 font-black text-slate-800 tracking-widest uppercase text-[10px] sm:text-xs leading-tight whitespace-pre-line">
+          <span className="mt-3 font-black text-zinc-300 tracking-widest uppercase text-[10px] sm:text-xs leading-tight whitespace-pre-line">
             {mode === 'qkd' ? 'A1 Datacenter\nVienna 1' : 'A1 User'}
           </span>
         </div>
@@ -365,72 +360,66 @@ const App = () => {
         <div className="flex-1 h-full relative flex flex-col justify-center px-4 sm:px-8">
           <div className="relative w-full flex flex-col">
             
-            {/* Standard IP Channel (Always present) */}
-            <div className={`relative w-full ${mode === 'qkd' ? 'mb-12' : ''}`}>
-              <span className="absolute -top-6 left-1/2 transform -translate-x-1/2 text-[10px] sm:text-xs text-slate-600 font-mono tracking-widest bg-white px-3 border border-slate-200 rounded-full shadow-sm z-10">
-                PUBLIC IP NETWORK (LAYER 3)
-              </span>
-              
-              {/* IP Network Pipe */}
-              <div className="relative w-full h-16 bg-slate-50 border-y-2 border-dashed border-slate-300 shadow-inner overflow-hidden flex items-center">
-                {/* Decorative horizontal track lines */}
-                <div className="absolute w-full h-px bg-slate-200 top-1/3"></div>
-                <div className="absolute w-full h-px bg-slate-200 top-2/3"></div>
+            {/* Standard IP Channel (Only for Classical and PQC) */}
+            {mode !== 'qkd' && (
+              <div className="relative w-full">
+                <span className="absolute -top-6 left-1/2 transform -translate-x-1/2 text-[10px] sm:text-xs text-zinc-400 font-mono tracking-widest bg-zinc-900 px-3 border border-zinc-700 rounded-full shadow-sm z-10 whitespace-nowrap">
+                  PUBLIC IP NETWORK (LAYER 3)
+                </span>
+                
+                {/* IP Network Pipe */}
+                <div className="relative w-full h-16 bg-zinc-800/80 border-y-2 border-dashed border-zinc-600 shadow-inner overflow-hidden flex items-center">
+                  {/* Decorative horizontal track lines */}
+                  <div className="absolute w-full h-px bg-zinc-700/50 top-1/3"></div>
+                  <div className="absolute w-full h-px bg-zinc-700/50 top-2/3"></div>
 
-                {/* Packet Animation */}
-                {transmissionState !== 'idle' && (
-                  <div className={`absolute top-1/2 transform -translate-y-1/2 transition-all ${getPacketDuration()} ease-linear ${getPacketPosition()} z-20`}>
-                    <div className={`relative flex items-center justify-center rounded-2xl shadow-lg transition-all duration-500 ${mode === 'classical' ? 'w-20 h-10 bg-blue-600 border-2 border-blue-700' : ''} ${mode === 'pqc' ? 'w-40 h-12 bg-emerald-600 border-2 border-emerald-700' : ''} ${mode === 'qkd' ? 'w-32 h-10 bg-gradient-to-r from-violet-500 via-fuchsia-500 to-purple-700 border border-purple-300' : ''}`}>
-                      {mode === 'classical' && (
-                        <div className="flex items-center space-x-2 text-white text-[10px] uppercase font-black">
-                          <Package size={18} className="text-white" />
-                          <Lock size={14} className="text-white" />
-                        </div>
-                      )}
-                      {mode === 'pqc' && (
-                        <div className="flex items-center justify-center w-full space-x-2 text-white text-[10px] uppercase font-black">
-                          <Package size={28} className="text-white" />
-                          <div className="flex flex-col space-y-1">
-                            <div className="flex space-x-1">
-                              <Lock size={12} className="text-white" />
-                              <Lock size={12} className="text-white" />
-                              <Lock size={12} className="text-white" />
+                  {/* Packet Animation */}
+                  {transmissionState !== 'idle' && (
+                    <div className={`absolute top-1/2 transform -translate-y-1/2 transition-all ${getPacketDuration()} ease-linear ${getPacketPosition()} z-20`}>
+                      <div className={`relative flex items-center justify-center rounded-2xl shadow-lg transition-all duration-500 ${mode === 'classical' ? 'w-20 h-10 bg-blue-600 border-2 border-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.6)]' : ''} ${mode === 'pqc' ? 'w-40 h-12 bg-emerald-600 border-2 border-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.6)]' : ''}`}>
+                        {mode === 'classical' && (
+                          <div className="flex items-center space-x-2 text-white text-[10px] uppercase font-black">
+                            <Package size={18} className="text-white" />
+                            <Lock size={14} className="text-white" />
+                          </div>
+                        )}
+                        {mode === 'pqc' && (
+                          <div className="flex items-center justify-center w-full space-x-2 text-white text-[10px] uppercase font-black">
+                            <Package size={28} className="text-white" />
+                            <div className="flex flex-col space-y-1">
+                              <div className="flex space-x-1">
+                                <Lock size={12} className="text-white" />
+                                <Lock size={12} className="text-white" />
+                                <Lock size={12} className="text-white" />
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      )}
-                      {mode === 'qkd' && (
-                        <div className="flex items-center space-x-2 text-white text-[10px] uppercase font-black relative">
-                          <Sparkles size={16} className="text-amber-300 absolute -top-3 -left-3 animate-pulse" />
-                          <Package size={22} className="text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]" />
-                          <Zap size={14} className="text-white" />
-                          <Sparkles size={16} className="text-amber-300 absolute -bottom-3 -right-3 animate-pulse delay-75" />
-                        </div>
-                      )}
+                        )}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Dedicated Quantum Channel (Only QKD) */}
             {mode === 'qkd' && (
-              <div className="relative w-full mt-12">
-                <span className="absolute -top-6 left-1/2 transform -translate-x-1/2 text-[10px] sm:text-xs text-purple-700 font-mono tracking-widest flex items-center bg-purple-50 px-3 rounded-full border border-purple-200 shadow-sm z-10">
-                  <Zap size={12} className="mr-2 text-purple-600"/> DEDICATED QUANTUM LINK (LAYER 1)
+              <div className="relative w-full">
+                <span className="absolute -top-12 left-1/2 transform -translate-x-1/2 text-[10px] sm:text-xs text-purple-400 font-mono tracking-widest flex items-center bg-zinc-900 px-3 rounded-full border border-purple-800/50 shadow-sm z-10 whitespace-nowrap">
+                  <Zap size={12} className="mr-2 text-purple-500"/> DEDICATED QUANTUM LINK (LAYER 1)
                 </span>
 
                 {/* The Quantum "Fiber Pipe" */}
-                <div className="relative w-full h-10 bg-slate-900 border-y-2 border-purple-500 overflow-hidden shadow-[inset_0_0_20px_rgba(147,51,234,0.4)] flex items-center rounded-full">
+                <div className="relative w-full h-10 bg-zinc-950 border-y-2 border-purple-600 overflow-hidden shadow-[inset_0_0_20px_rgba(168,85,247,0.2)] flex items-center rounded-full">
                   {/* Glowing core line */}
-                  <div className="absolute w-full h-px bg-purple-400/50 top-1/2 transform -translate-y-1/2 shadow-[0_0_8px_rgba(168,85,247,0.8)]"></div>
+                  <div className="absolute w-full h-px bg-purple-500/80 top-1/2 transform -translate-y-1/2 shadow-[0_0_12px_rgba(168,85,247,1)]"></div>
 
                   {/* Photon Animation Link */}
                   {transmissionState !== 'idle' && (
                     <div className={`absolute top-1/2 transform -translate-y-1/2 transition-all ${getPacketDuration()} ease-linear ${getPacketPosition()} z-10`}>
                       <div className="flex space-x-3">
-                        <div className={`w-4 h-4 rounded-full ${attackerActive && transmissionState !== 'sending' ? 'bg-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.8)]' : 'bg-purple-400 shadow-[0_0_15px_rgba(192,132,252,0.9)]'} animate-pulse`}></div>
-                        <div className={`w-4 h-4 rounded-full ${attackerActive && transmissionState !== 'sending' ? 'bg-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.8)]' : 'bg-purple-400 shadow-[0_0_15px_rgba(192,132,252,0.9)]'} animate-pulse delay-75`}></div>
+                        <div className={`w-4 h-4 rounded-full ${attackerActive && transmissionState !== 'sending' ? 'bg-amber-400 shadow-[0_0_15px_rgba(251,191,36,1)]' : 'bg-purple-300 shadow-[0_0_15px_rgba(216,180,254,1)]'} animate-pulse`}></div>
+                        <div className={`w-4 h-4 rounded-full ${attackerActive && transmissionState !== 'sending' ? 'bg-amber-400 shadow-[0_0_15px_rgba(251,191,36,1)]' : 'bg-purple-300 shadow-[0_0_15px_rgba(216,180,254,1)]'} animate-pulse delay-75`}></div>
                       </div>
                     </div>
                   )}
@@ -439,19 +428,78 @@ const App = () => {
             )}
 
             {/* Attacker Node (Amber Warning Theme) */}
-            <div className={`absolute top-4 left-1/2 transform -translate-x-1/2 flex flex-col items-center z-30 transition-all duration-500 pointer-events-none`}>
+            <div className={`absolute ${mode === 'qkd' ? '-top-3' : 'top-4'} left-1/2 transform -translate-x-1/2 flex flex-col items-center z-30 transition-all duration-500 pointer-events-none`}>
               <div className="pointer-events-auto flex flex-col items-center relative">
-                {attackerActive && mode === 'qkd' && (
-                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-1 bg-amber-400 h-[240px] -z-10 animate-pulse rounded-full opacity-60"></div>
-                )}
-                <div className={`w-16 h-16 rounded-xl bg-white border-2 flex items-center justify-center transition-all duration-300 ${attackerActive ? 'border-amber-500 shadow-[0_8px_20px_rgba(245,158,11,0.3)] scale-110' : 'border-slate-200 opacity-60'}`}>
-                  <UserX className={attackerActive ? 'text-amber-500' : 'text-slate-400'} size={32} />
+                <div className={`w-16 h-16 rounded-xl bg-zinc-900 border-2 flex items-center justify-center transition-all duration-300 ${attackerActive ? 'border-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.4)] scale-110' : 'border-zinc-700 opacity-60'}`}>
+                  <UserX className={attackerActive ? 'text-amber-500' : 'text-zinc-500'} size={32} />
                 </div>
-                <span className={`mt-3 text-sm font-black tracking-widest uppercase bg-white/80 px-2 rounded ${attackerActive ? 'text-amber-600' : 'text-slate-400'}`}>Attacker</span>
+                <span className={`mt-3 text-sm font-black tracking-widest uppercase bg-zinc-900/90 px-2 py-1 border ${attackerActive ? 'border-amber-500 text-amber-500' : 'border-zinc-700 text-zinc-500'} rounded-md`}>Attacker</span>
                 {transmissionState === 'intercepted' && (
-                  <span className="absolute -bottom-8 text-[11px] font-bold text-amber-900 bg-amber-200 border border-amber-400 px-3 py-1 rounded-full whitespace-nowrap shadow-md">
+                  <span className="absolute -bottom-10 text-[11px] font-bold text-zinc-950 bg-amber-400 border border-amber-500 px-3 py-1 rounded-full whitespace-nowrap shadow-[0_0_15px_rgba(245,158,11,0.6)]">
                     {mode === 'qkd' ? 'MEASURING PHOTONS...' : 'COPYING PACKETS...'}
                   </span>
+                )}
+
+                {/* HNDL Vault Visualization */}
+                {attackerActive && (
+                  <>
+                    {/* Connecting SVG with Data Animation */}
+                    <svg className="absolute pointer-events-none z-10" style={{ left: 'calc(50% + 2rem)', top: '2rem', width: '2rem', height: '4rem', overflow: 'visible' }}>
+                      <path d="M 0 0 L 16 0 Q 32 0 32 16 L 32 48" fill="none" stroke="#71717a" strokeWidth="2" strokeDasharray="4 4" />
+                      {isIntercepting && (
+                        <circle r="4" fill={mode === 'classical' ? '#fbbf24' : (mode === 'pqc' ? '#10b981' : '#a855f7')} className="drop-shadow-[0_0_5px_rgba(255,255,255,0.8)]">
+                          <animateMotion dur="0.6s" repeatCount="indefinite" path="M 0 0 L 16 0 Q 32 0 32 16 L 32 48" />
+                        </circle>
+                      )}
+                    </svg>
+
+                    {/* The Vault */}
+                    <div className="absolute left-[calc(50%+4rem)] top-[4rem] w-48 bg-zinc-900 border border-zinc-700 rounded-xl p-3 shadow-2xl flex flex-col z-20">
+                      <div className="flex items-center justify-between mb-2 border-b border-zinc-800 pb-2">
+                        <div className="flex items-center space-x-2">
+                          <Database size={14} className={isIntercepting ? "text-amber-500 animate-pulse" : "text-zinc-500"} />
+                          <span className="text-[10px] font-black tracking-wider text-zinc-300 uppercase">HNDL Vault</span>
+                        </div>
+                      </div>
+                      
+                      <div className={`h-16 w-full rounded-lg border flex items-center justify-center p-2 text-center transition-all duration-300 ${
+                        showVerdict
+                          ? (mode === 'classical' ? 'bg-amber-950/50 border-amber-500/50 shadow-[inset_0_0_15px_rgba(245,158,11,0.2)]' : 'bg-zinc-950 border-zinc-800')
+                          : (isIntercepting ? 'bg-zinc-800/80 border-zinc-600 shadow-[inset_0_0_10px_rgba(255,255,255,0.05)]' : 'bg-zinc-950 border-zinc-800')
+                      }`}>
+                        {mode === 'classical' && (
+                          <div className="flex flex-col items-center">
+                            <span className={`text-[9px] font-black uppercase mb-0.5 ${showVerdict ? 'text-amber-500' : (isIntercepting ? 'text-amber-400 animate-pulse' : 'text-zinc-600')}`}>
+                              {showVerdict ? 'Harvesting Data' : (isIntercepting ? 'Receiving...' : 'Waiting...')}
+                            </span>
+                            <span className={`text-[8px] uppercase font-bold leading-tight ${showVerdict ? 'text-amber-400/80' : 'text-zinc-700'}`}>
+                              For Future Decryption
+                            </span>
+                          </div>
+                        )}
+                        {mode === 'pqc' && (
+                          <div className="flex flex-col items-center">
+                            <span className={`text-[9px] font-black uppercase mb-0.5 ${showVerdict ? 'text-emerald-500' : (isIntercepting ? 'text-emerald-400 animate-pulse' : 'text-zinc-600')}`}>
+                              {showVerdict ? 'Data Rejected' : (isIntercepting ? 'Analyzing...' : 'Waiting...')}
+                            </span>
+                            <span className={`text-[8px] uppercase font-bold leading-tight ${showVerdict ? 'text-emerald-400/70' : 'text-zinc-700'}`}>
+                              Quantum-Safe Math
+                            </span>
+                          </div>
+                        )}
+                        {mode === 'qkd' && (
+                          <div className="flex flex-col items-center">
+                            <span className={`text-[9px] font-black uppercase mb-0.5 ${showVerdict ? 'text-purple-500' : (isIntercepting ? 'text-purple-400 animate-pulse' : 'text-zinc-600')}`}>
+                              {showVerdict ? 'No Data Stored' : (isIntercepting ? 'Measuring...' : 'Waiting...')}
+                            </span>
+                            <span className={`text-[8px] uppercase font-bold leading-tight ${showVerdict ? 'text-purple-400/70' : 'text-zinc-700'}`}>
+                              State Collapsed
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </>
                 )}
               </div>
             </div>
@@ -459,15 +507,15 @@ const App = () => {
         </div>
 
         {/* Receiver (Bob/A1 App/Vienna 2) */}
-        <div className="z-10 flex flex-col items-center text-center">
-          <div className="w-20 h-20 bg-white rounded-xl flex items-center justify-center border-2 border-slate-300 shadow-md relative">
+        <div className="z-10 flex flex-col items-center text-center w-24">
+          <div className="w-20 h-20 bg-zinc-800 rounded-xl flex items-center justify-center border-2 border-zinc-700 shadow-md relative">
             <div className={`absolute -left-2 -top-2 w-4 h-4 rounded-full ${
               ((transmissionState !== 'idle' && transmissionState !== 'received' && transmissionState !== 'aborted' && direction === 'rtl') || 
                ((transmissionState === 'received' || transmissionState === 'aborted') && direction === 'ltr')) 
-               ? 'bg-green-500 animate-pulse shadow-sm' : 'bg-slate-300'} shadow-sm`}></div>
-            {mode === 'qkd' ? <HardDrive className="text-slate-700" size={40} /> : <LayoutTemplate className="text-slate-700" size={40} />}
+               ? 'bg-emerald-500 animate-pulse shadow-sm' : 'bg-zinc-600'} shadow-sm`}></div>
+            {mode === 'qkd' ? <HardDrive className="text-zinc-300" size={40} /> : <LayoutTemplate className="text-zinc-300" size={40} />}
           </div>
-          <span className="mt-3 font-black text-slate-800 tracking-widest uppercase text-[10px] sm:text-xs leading-tight whitespace-pre-line">
+          <span className="mt-3 font-black text-zinc-300 tracking-widest uppercase text-[10px] sm:text-xs leading-tight whitespace-pre-line">
             {mode === 'qkd' ? 'A1 Datacenter\nVienna 2' : 'A1 App'}
           </span>
         </div>
@@ -476,107 +524,73 @@ const App = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white text-slate-900 p-6 font-sans">
-      <div className="max-w-7xl mx-auto space-y-8">
+    <div className="min-h-screen bg-zinc-950 text-zinc-100 p-4 sm:p-6 md:p-8 font-sans overflow-x-hidden">
+      <div className="max-w-[1800px] mx-auto space-y-8 flex flex-col min-h-[calc(100vh-4rem)]">
         
-        {/* Header - A1 Corporate Light Theme */}
-        <div className="bg-white border-t-8 border-[#E50000] rounded-xl p-8 shadow-[0_4px_20px_rgba(0,0,0,0.06)] relative overflow-hidden border-x border-b border-slate-200">
-          
+        {/* Header - A1 Corporate Dark Theme */}
+        <div className="bg-zinc-900 border-t-8 border-[#E50000] border-x border-b border-zinc-800 rounded-xl p-6 sm:p-8 shadow-2xl relative overflow-hidden flex-shrink-0">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 relative z-10">
             <div>
               <div className="flex items-center mb-2">
-                <div className={`w-10 h-10 ${A1_RED_BG} rounded-lg flex items-center justify-center mr-4 shadow-md`}>
-                  <Shield className="text-white" size={20} />
+                <div className={`w-10 h-10 bg-white rounded-lg flex items-center justify-center mr-4 shadow-[0_0_15px_rgba(229,0,0,0.5)] overflow-hidden p-1`}>
+                  <img src={a1Logo} alt="A1 Logo" className="w-full h-full object-contain" />
                 </div>
-                <h1 className="text-3xl font-black text-slate-900 tracking-tight uppercase">
+                <h1 className="text-2xl sm:text-3xl font-black text-zinc-100 tracking-tight uppercase">
                   Cryptography Architecture Simulator
                 </h1>
               </div>
-              <p className="text-slate-600 text-base font-medium ml-14">
+              <p className="text-zinc-400 text-sm sm:text-base font-medium ml-14">
                 Evaluate the OSI layer impact, infrastructure requirements, and system resource utilization of Classical vs. Post-Quantum mechanisms.
               </p>
             </div>
             
-            {/* Tab Navigation - Light Theme */}
-            <div className="flex bg-slate-50 rounded-lg p-1 border border-slate-200 mt-6 md:mt-0 shadow-inner">
+            {/* Tab Navigation - Dark Theme */}
+            <div className="flex bg-zinc-950 rounded-lg p-1 border border-zinc-800 mt-6 md:mt-0 shadow-inner w-full md:w-auto">
               <button 
                 onClick={() => setActiveTab('architecture')}
-                className={`px-6 py-3 rounded-md text-sm font-black uppercase tracking-wider transition-all duration-300 ${activeTab === 'architecture' ? `${A1_RED_BG} text-white shadow-md` : 'text-slate-500 hover:text-slate-900 hover:bg-slate-200'}`}
+                className={`flex-1 md:flex-none px-6 py-3 rounded-md text-sm font-black uppercase tracking-wider transition-all duration-300 ${activeTab === 'architecture' ? `${A1_RED_BG} text-white shadow-[0_0_10px_rgba(229,0,0,0.4)]` : 'text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800'}`}
               >
-                Network Topology
+                Architecture
               </button>
               <button 
                 onClick={() => setActiveTab('resources')}
-                className={`px-6 py-3 rounded-md text-sm font-black uppercase tracking-wider transition-all duration-300 ${activeTab === 'resources' ? `${A1_RED_BG} text-white shadow-md` : 'text-slate-500 hover:text-slate-900 hover:bg-slate-200'}`}
+                className={`flex-1 md:flex-none px-6 py-3 rounded-md text-sm font-black uppercase tracking-wider transition-all duration-300 ${activeTab === 'resources' ? `${A1_RED_BG} text-white shadow-[0_0_10px_rgba(229,0,0,0.4)]` : 'text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800'}`}
               >
-                Resource Impact
+                Resources
               </button>
             </div>
           </div>
 
-          {/* Mode Selectors - Topic Color Coded */}
+          {/* Mode Selectors - Dark Theme */}
           <div className="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-6 relative z-10">
             {Object.values(themes).map((t) => (
               <button 
                 key={t.id}
                 onClick={() => setMode(t.id)}
-                className={`flex-1 py-4 px-6 rounded-xl border-2 transition-all duration-300 group hover:-translate-y-1 ${mode === t.id ? t.btnActive : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'}`}
+                className={`flex-1 py-4 px-6 rounded-xl border-2 transition-all duration-300 group hover:-translate-y-1 ${mode === t.id ? t.btnActive : 'border-zinc-800 bg-zinc-950 text-zinc-400 hover:border-zinc-700 hover:bg-zinc-800'}`}
               >
-                <div className={`font-black text-lg tracking-wide ${mode === t.id ? t.textPrimary : 'text-slate-700'}`}>{t.name}</div>
-                <div className={`text-xs mt-2 font-bold tracking-widest uppercase ${mode === t.id ? t.textAccent : 'opacity-60'}`}>{t.desc}</div>
+                <div className={`font-black text-lg tracking-wide ${mode === t.id ? t.textPrimary : 'text-zinc-300'}`}>{t.name}</div>
+                <div className={`text-xs mt-2 font-bold tracking-widest uppercase ${mode === t.id ? t.textAccent : 'opacity-50 group-hover:opacity-100 transition-opacity'}`}>{t.desc}</div>
               </button>
             ))}
           </div>
         </div>
 
-        {/* Main Simulator Area */}
+        {/* Main Simulator Area - 3 Column Layout */}
         {activeTab === 'architecture' ? (
-          <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 animate-in fade-in duration-500">
-            {/* Left Column: Visualization & Controls */}
-            <div className="xl:col-span-2 space-y-8">
-              {renderTopology()}
-
-              <div className="bg-white border border-slate-200 rounded-xl p-8 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-6">
-                <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
-                  <button 
-                    onClick={toggleTransmission}
-                    className={`w-full sm:w-auto ${A1_RED_BG} hover:bg-red-700 text-white px-8 py-4 rounded-lg font-black tracking-widest uppercase shadow-md hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200 outline-none`}
-                  >
-                    {isTransmitting ? 'Stop Transmission' : 'Initiate Transmission'}
-                  </button>
-                  <button 
-                    onClick={handleAttackerToggle}
-                    className={`w-full sm:w-auto px-8 py-4 rounded-lg font-black tracking-widest uppercase border-2 transition-all duration-200 shadow-sm hover:-translate-y-0.5 outline-none ${attackerActive ? 'bg-amber-50 border-amber-400 text-amber-700 hover:bg-amber-100 shadow-[0_4px_10px_rgba(245,158,11,0.2)]' : 'bg-white border-slate-300 text-slate-700 hover:border-slate-400 hover:text-slate-900 hover:bg-slate-50'}`}
-                  >
-                    {attackerActive ? 'Disable Attacker' : 'Simulate Attack (MitM)'}
-                  </button>
-                </div>
-
-                {/* Status Output */}
-                <div className="text-center sm:text-right w-full sm:w-auto bg-slate-50 p-4 rounded-lg border border-slate-200 min-w-[200px]">
-                  <div className="text-xs text-slate-600 mb-1 font-bold uppercase tracking-widest">Network Status</div>
-                  <div className="font-mono font-black text-xl tracking-wider">
-                    {transmissionState === 'idle' && <span className="text-slate-500">READY</span>}
-                    {(transmissionState === 'sending' || transmissionState === 'moving') && <span className="text-blue-600 animate-pulse">TRANSMITTING...</span>}
-                    {transmissionState === 'intercepted' && <span className="text-amber-600 animate-pulse">INTERCEPTED!</span>}
-                    {transmissionState === 'received' && <span className="text-green-600">SECURE</span>}
-                    {transmissionState === 'aborted' && <span className="text-red-600 flex items-center justify-center sm:justify-end"><ShieldAlert size={20} className="mr-2"/> ABORTED</span>}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Right Column: Architectural Analysis */}
-            <div className="space-y-8">
-              <div className={`bg-white border border-slate-200 rounded-xl p-8 shadow-sm relative overflow-hidden transition-colors duration-500`}>
+          <div className="flex flex-col xl:flex-row gap-6 w-full animate-in fade-in duration-500 flex-grow items-stretch">
+            
+            {/* Left Column: Architectural Impact */}
+            <div className="xl:w-[28%] w-full flex flex-col space-y-6 flex-shrink-0">
+              <div className={`bg-zinc-900 border border-zinc-800 rounded-xl p-6 shadow-xl relative overflow-hidden transition-colors duration-500 h-full flex flex-col`}>
                 <div className={`absolute left-0 top-0 w-2 h-full ${currentTheme.barColor} transition-colors duration-500`}></div>
-                <h3 className={`text-xl font-black ${currentTheme.textPrimary} mb-6 uppercase tracking-widest flex items-center`}>
+                <h3 className={`text-lg font-black ${currentTheme.textPrimary} mb-6 uppercase tracking-widest flex items-center`}>
                   <Activity className={`mr-3 ${currentTheme.textAccent}`}/> Architectural Impact
                 </h3>
                 
-                <div className="space-y-6 text-sm">
+                <div className="space-y-6 text-sm flex-grow">
                   <div>
-                    <div className="text-slate-600 mb-2 font-bold uppercase tracking-wider text-xs">OSI Layer Operation</div>
+                    <div className="text-zinc-500 mb-2 font-bold uppercase tracking-wider text-xs">OSI Layer Operation</div>
                     <div className={`font-mono ${currentTheme.textPrimary} ${currentTheme.bgLight} p-4 rounded-lg border ${currentTheme.borderLight} font-bold text-base transition-colors duration-500`}>
                       {mode === 'classical' && "Layer 7 (Software/Math)"}
                       {mode === 'pqc' && "Layer 7 (Software/Post-Quantum Math)"}
@@ -585,7 +599,7 @@ const App = () => {
                   </div>
 
                   <div>
-                    <div className="text-slate-600 mb-2 font-bold uppercase tracking-wider text-xs">Infrastructure Requirement</div>
+                    <div className="text-zinc-500 mb-2 font-bold uppercase tracking-wider text-xs">Infrastructure Requirement</div>
                     <div className={`font-mono p-4 rounded-lg border leading-relaxed transition-colors duration-500 ${currentTheme.bgLight} ${currentTheme.borderLight} ${currentTheme.textPrimary} font-medium`}>
                       {mode === 'classical' && "Standard IP Network. No hardware changes required."}
                       {mode === 'pqc' && "Standard IP network. Requires post-quantum handshake upgrades."}
@@ -594,69 +608,107 @@ const App = () => {
                   </div>
 
                   <div>
-                    <div className="text-slate-600 mb-2 font-bold uppercase tracking-wider text-xs">Network Payload (Public Key)</div>
+                    <div className="text-zinc-500 mb-2 font-bold uppercase tracking-wider text-xs">Network Payload (Public Key)</div>
                     <div className={`font-mono ${currentTheme.textPrimary} ${currentTheme.bgLight} p-4 rounded-lg border ${currentTheme.borderLight} flex items-center justify-between font-bold transition-colors duration-500`}>
                       <span>
                         {mode === 'classical' && "Small (e.g., 32B for ECC)"}
-                        {mode === 'pqc' && <span className="text-emerald-800">Massive public key metadata</span>}
+                        {mode === 'pqc' && <span className="text-emerald-400">Massive public key metadata</span>}
                         {mode === 'qkd' && "N/A (Quantum light pulses)"}
                       </span>
-                      {mode === 'pqc' && <Activity size={20} className="text-emerald-600 animate-pulse"/>}
+                      {mode === 'pqc' && <Activity size={20} className="text-emerald-500 animate-pulse"/>}
                     </div>
                   </div>
                 </div>
               </div>
+            </div>
 
-              <div className="bg-white border border-slate-200 rounded-xl p-8 shadow-sm relative overflow-hidden">
-                <div className={`absolute left-0 top-0 w-2 h-full ${mode === 'classical' ? 'bg-red-500' : 'bg-green-500'} transition-colors duration-500`}></div>
-                <h3 className="text-xl font-black text-slate-900 mb-6 uppercase tracking-widest flex items-center">
-                  <Shield className="mr-3 text-slate-500"/> Security Analysis
+            {/* Middle Column: Visualization & Controls */}
+            <div className="xl:w-[44%] w-full flex flex-col space-y-6 flex-grow">
+              {renderTopology()}
+
+              <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-6">
+                <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+                  <button 
+                    onClick={toggleTransmission}
+                    className={`w-full sm:w-auto ${A1_RED_BG} hover:bg-red-700 text-white px-6 py-4 rounded-lg font-black tracking-widest uppercase shadow-[0_0_15px_rgba(229,0,0,0.3)] hover:-translate-y-0.5 hover:shadow-[0_0_20px_rgba(229,0,0,0.5)] transition-all duration-200 outline-none`}
+                  >
+                    {isTransmitting ? 'Stop' : 'Transmit'}
+                  </button>
+                  <button 
+                    onClick={handleAttackerToggle}
+                    className={`w-full sm:w-auto px-6 py-4 rounded-lg font-black tracking-widest uppercase border-2 transition-all duration-200 shadow-sm hover:-translate-y-0.5 outline-none ${attackerActive ? 'bg-amber-500/20 border-amber-500 text-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.3)] hover:bg-amber-500/30' : 'bg-zinc-800 border-zinc-600 text-zinc-300 hover:border-zinc-500 hover:text-white hover:bg-zinc-700'}`}
+                  >
+                    {attackerActive ? 'Disable Attacker' : 'MitM Attack'}
+                  </button>
+                </div>
+
+                {/* Status Output */}
+                <div className="text-center sm:text-right w-full sm:w-auto bg-zinc-950 p-4 rounded-lg border border-zinc-800 min-w-[180px]">
+                  <div className="text-xs text-zinc-500 mb-1 font-bold uppercase tracking-widest">Network Status</div>
+                  <div className="font-mono font-black text-xl tracking-wider">
+                    {transmissionState === 'idle' && <span className="text-zinc-500">READY</span>}
+                    {(transmissionState === 'sending' || transmissionState === 'moving') && <span className="text-blue-500 animate-pulse drop-shadow-[0_0_8px_rgba(59,130,246,0.8)]">TRANSMITTING</span>}
+                    {transmissionState === 'intercepted' && <span className="text-amber-500 animate-pulse drop-shadow-[0_0_8px_rgba(245,158,11,0.8)]">INTERCEPTED!</span>}
+                    {transmissionState === 'received' && <span className="text-emerald-500 drop-shadow-[0_0_8px_rgba(16,185,129,0.8)]">SECURE</span>}
+                    {transmissionState === 'aborted' && <span className="text-[#E50000] flex items-center justify-center sm:justify-end drop-shadow-[0_0_8px_rgba(229,0,0,0.8)]"><ShieldAlert size={20} className="mr-2"/> ABORTED</span>}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Column: Security Analysis */}
+            <div className="xl:w-[28%] w-full flex flex-col space-y-6 flex-shrink-0">
+              <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 shadow-xl relative overflow-hidden h-full flex flex-col">
+                <div className={`absolute left-0 top-0 w-2 h-full ${mode === 'classical' ? 'bg-[#E50000]' : 'bg-emerald-500'} transition-colors duration-500`}></div>
+                <h3 className="text-lg font-black text-zinc-100 mb-6 uppercase tracking-widest flex items-center">
+                  <Shield className="mr-3 text-zinc-400"/> Security Analysis
                 </h3>
                 
                 {mode === 'qkd' && (
-                  <div className="mb-6 bg-slate-50 p-5 rounded-lg border border-slate-200 shadow-sm">
-                    <div className="text-xs text-slate-700 mb-2 font-bold uppercase tracking-wider">Quantum Bit Error Rate (QBER)</div>
+                  <div className="mb-6 bg-zinc-950 p-4 rounded-lg border border-zinc-800 shadow-inner">
+                    <div className="text-xs text-zinc-400 mb-2 font-bold uppercase tracking-wider">Quantum Bit Error Rate (QBER)</div>
                     <div className="flex items-center">
-                      <div className="w-full bg-slate-200 rounded-full h-3 mr-4 border border-slate-300">
-                        <div className={`h-3 rounded-full transition-all duration-500 ${qber > 11 ? 'bg-amber-500' : 'bg-green-500'}`} style={{ width: `${qber}%` }}></div>
+                      <div className="w-full bg-zinc-800 rounded-full h-3 mr-4 border border-zinc-700">
+                        <div className={`h-3 rounded-full transition-all duration-500 ${qber > 11 ? 'bg-[#E50000] shadow-[0_0_10px_rgba(229,0,0,0.8)]' : 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.8)]'}`} style={{ width: `${qber}%` }}></div>
                       </div>
-                      <span className={`font-mono font-black text-lg ${qber > 11 ? 'text-amber-600' : 'text-green-600'}`}>{qber}%</span>
+                      <span className={`font-mono font-black text-lg ${qber > 11 ? 'text-[#E50000]' : 'text-emerald-500'}`}>{qber}%</span>
                     </div>
-                    <p className="text-xs text-slate-600 mt-3 italic leading-relaxed border-t border-slate-200 pt-2">Threshold: ~11%. Attacker's measurement forces collapse.</p>
+                    <p className="text-xs text-zinc-500 mt-3 italic leading-relaxed border-t border-zinc-800 pt-2">Threshold: ~11%. Attacker's measurement forces collapse.</p>
                   </div>
                 )}
 
-                <div className="text-sm space-y-6">
-                  <div className="flex items-start bg-slate-50 p-4 rounded-lg border border-slate-200">
-                    <div className="mt-1 mr-4 bg-white p-2 rounded-md border border-slate-300 shadow-sm">
-                      {mode === 'qkd' ? <Unlock className="text-amber-500" size={20}/> : (mode === 'classical' ? <Unlock className="text-red-600" size={20}/> : <Lock className="text-green-600" size={20}/>)}
+                <div className="text-sm space-y-4 flex-grow">
+                  <div className="flex items-start bg-zinc-950 p-4 rounded-lg border border-zinc-800">
+                    <div className="mt-1 mr-4 bg-zinc-800 p-2 rounded-md border border-zinc-700 shadow-sm flex-shrink-0">
+                      {mode === 'qkd' ? <Unlock className="text-amber-500" size={20}/> : (mode === 'classical' ? <Unlock className="text-[#E50000]" size={20}/> : <Lock className="text-emerald-500" size={20}/>)}
                     </div>
                     <div>
-                      <div className="font-black text-slate-900 uppercase tracking-wider text-xs mb-1">Against Quantum Computers</div>
-                      <div className={`leading-relaxed font-medium ${mode === 'classical' ? 'text-red-700' : (mode === 'qkd' ? 'text-amber-700' : 'text-green-700')}`}>
-                        {mode === 'classical' && "Vulnerable (Shor's Algorithm). Attacker saves packets now to decrypt later (SNDL)."}
+                      <div className="font-black text-zinc-300 uppercase tracking-wider text-xs mb-1">Against Quantum Computers</div>
+                      <div className={`leading-relaxed font-medium ${mode === 'classical' ? 'text-red-400' : (mode === 'qkd' ? 'text-amber-400' : 'text-emerald-400')}`}>
+                        {mode === 'classical' && "Vulnerable (Shor's). Attacker saves packets now to decrypt later (HNDL)."}
                         {mode === 'pqc' && "Secure. Mathematically resistant to known quantum algorithms."}
-                        {mode === 'qkd' && "Physics link secure, BUT breaks end-to-end encryption. The Trusted Node holds plaintext keys in memory, making it a highly vulnerable classical attack vector."}
+                        {mode === 'qkd' && "Physics link secure, BUT breaks end-to-end encryption. The Trusted Node is a vulnerable classical vector."}
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex items-start bg-slate-50 p-4 rounded-lg border border-slate-200">
-                    <div className="mt-1 mr-4 bg-white p-2 rounded-md border border-slate-300 shadow-sm">
-                      {attackerActive && mode === 'qkd' ? <Activity className="text-blue-600" size={20}/> : <Wifi className="text-slate-500" size={20}/>}
+                  <div className="flex items-start bg-zinc-950 p-4 rounded-lg border border-zinc-800">
+                    <div className="mt-1 mr-4 bg-zinc-800 p-2 rounded-md border border-zinc-700 shadow-sm flex-shrink-0">
+                      {attackerActive && mode === 'qkd' ? <Activity className="text-blue-500" size={20}/> : <Wifi className="text-zinc-400" size={20}/>}
                     </div>
                     <div>
-                      <div className="font-black text-slate-900 uppercase tracking-wider text-xs mb-1">Eavesdropping Detection</div>
-                      <div className="text-slate-700 leading-relaxed font-medium">
+                      <div className="font-black text-zinc-300 uppercase tracking-wider text-xs mb-1">Eavesdropping Detection</div>
+                      <div className="text-zinc-400 leading-relaxed font-medium">
                         {mode === 'classical' && "None. Attacker can copy IP packets passively without detection."}
                         {mode === 'pqc' && "None. Attacker can copy IP packets passively, but cannot read them."}
-                        {mode === 'qkd' && <span className="text-blue-700 font-bold">Immediate. Measuring a photon alters its state. Alice and Bob detect the spike in error rates and abort.</span>}
+                        {mode === 'qkd' && <span className="text-blue-400 font-bold drop-shadow-[0_0_5px_rgba(59,130,246,0.5)]">Immediate. Measuring a photon alters its state. Alice and Bob abort.</span>}
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
+
           </div>
         ) : (
           renderResourceImpact()
