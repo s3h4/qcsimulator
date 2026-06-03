@@ -1,6 +1,39 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Network, Server, Shield, ShieldAlert, Zap, Activity, UserX, Lock, Unlock, HardDrive, Wifi, Cpu, Database, BarChart2, Smartphone, LayoutTemplate, Package, Sparkles } from 'lucide-react';
+import { Network, Server, Shield, ShieldAlert, Zap, Activity, UserX, Lock, Unlock, HardDrive, Wifi, Cpu, Database, BarChart2, Smartphone, LayoutTemplate, Package, Sparkles, Key, Info } from 'lucide-react';
 import a1Logo from '../A1_red_logo.png';
+
+class PausableTimer {
+  constructor(callback, delay) {
+    this.callback = callback;
+    this.remaining = delay;
+    this.timerId = null;
+    this.start = null;
+    this.isPaused = false;
+    this.hasFinished = false;
+    this.resume();
+  }
+  pause() {
+    if (this.isPaused || this.hasFinished) return;
+    this.isPaused = true;
+    clearTimeout(this.timerId);
+    this.remaining -= (Date.now() - this.start);
+  }
+  resume() {
+    if (!this.isPaused && this.timerId !== null) return;
+    if (this.hasFinished) return;
+    this.isPaused = false;
+    this.start = Date.now();
+    clearTimeout(this.timerId);
+    this.timerId = setTimeout(() => {
+      this.hasFinished = true;
+      this.callback();
+    }, this.remaining);
+  }
+  clear() {
+    this.hasFinished = true;
+    clearTimeout(this.timerId);
+  }
+}
 
 const App = () => {
   const [activeTab, setActiveTab] = useState('architecture'); // architecture, resources
@@ -10,6 +43,7 @@ const App = () => {
   const [qber, setQber] = useState(0); // Quantum Bit Error Rate
   const [cps, setCps] = useState(1000); // Connections Per Second for the resource simulator
   const [isTransmitting, setIsTransmitting] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
   const [direction, setDirection] = useState('ltr'); // ltr or rtl
 
   const attackerActiveRef = useRef(attackerActive);
@@ -80,13 +114,16 @@ const App = () => {
   const timeoutsRef = useRef([]);
 
   const clearTimeouts = () => {
-    timeoutsRef.current.forEach(clearTimeout);
+    timeoutsRef.current.forEach(t => {
+      if (t && typeof t.clear === 'function') t.clear();
+    });
     timeoutsRef.current = [];
   };
 
   // Reset state when mode changes
   useEffect(() => {
     setIsTransmitting(false);
+    setIsPaused(false);
     isTransmittingRef.current = false;
     clearTimeouts();
     setTransmissionState('idle');
@@ -94,6 +131,26 @@ const App = () => {
     setAttackerActive(false);
     setDirection('ltr');
   }, [mode]);
+
+  // Aggressively sync pause state with CSS animations and SVG animations
+  useEffect(() => {
+    document.querySelectorAll('.packet-anim, .packet-anim *').forEach(el => {
+      el.getAnimations().forEach(a => {
+        if (isPaused) {
+          a.pause();
+        } else if (a.playState === 'paused') {
+          a.play();
+        }
+      });
+    });
+    document.querySelectorAll('svg').forEach(svg => {
+      if (isPaused) {
+        if (svg.pauseAnimations) svg.pauseAnimations();
+      } else {
+        if (svg.unpauseAnimations) svg.unpauseAnimations();
+      }
+    });
+  }); // Runs after every render to ensure transitions freeze perfectly
 
   const runSimulation = (dir = 'ltr') => {
     setDirection(dir);
@@ -104,11 +161,11 @@ const App = () => {
     if (!isTransmittingRef.current) return;
 
     // Brief delay to allow the DOM to reset to idle state
-    const t1 = setTimeout(() => {
+    const t1 = new PausableTimer(() => {
       setTransmissionState('sending');
 
       // Start animation
-      const t2 = setTimeout(() => {
+      const t2 = new PausableTimer(() => {
         if (attackerActiveRef.current) {
           setTransmissionState('moving_to_intercept');
         } else {
@@ -116,13 +173,13 @@ const App = () => {
         }
       }, 100);
 
-      const t3 = setTimeout(() => {
+      const t3 = new PausableTimer(() => {
         if (attackerActiveRef.current) {
           setTransmissionState('intercepted');
         }
       }, 1100); // 1000ms to reach middle
 
-      const t3_5 = setTimeout(() => {
+      const t3_5 = new PausableTimer(() => {
         if (attackerActiveRef.current) {
           setTransmissionState('moving_after_intercept');
         }
@@ -131,7 +188,7 @@ const App = () => {
       const finalTime = attackerActiveRef.current ? 3100 : 2100;
 
       // Final state reached
-      const t4 = setTimeout(() => {
+      const t4 = new PausableTimer(() => {
         if (mode === 'qkd' && attackerActiveRef.current) {
           setQber(Math.floor(Math.random() * 25) + 25); // 25-50% error rate
           setTransmissionState('aborted'); // Protocol aborts due to high QBER
@@ -141,7 +198,7 @@ const App = () => {
         
         // Loop if still transmitting
         if (isTransmittingRef.current) {
-          const t5 = setTimeout(() => {
+          const t5 = new PausableTimer(() => {
             if (runSimulationRef.current) {
               runSimulationRef.current(dir === 'ltr' ? 'rtl' : 'ltr');
             }
@@ -161,17 +218,17 @@ const App = () => {
   });
 
   const toggleTransmission = () => {
-    if (isTransmitting) {
-      setIsTransmitting(false);
-      isTransmittingRef.current = false;
-      clearTimeouts();
-      setTransmissionState('idle');
-      setQber(0);
-      setDirection('ltr');
-    } else {
+    if (!isTransmitting) {
       setIsTransmitting(true);
+      setIsPaused(false);
       isTransmittingRef.current = true;
       runSimulation('ltr');
+    } else if (!isPaused) {
+      setIsPaused(true);
+      timeoutsRef.current.forEach(t => t.pause());
+    } else {
+      setIsPaused(false);
+      timeoutsRef.current.forEach(t => t.resume());
     }
   };
 
@@ -215,7 +272,7 @@ const App = () => {
     };
 
     return (
-      <div className="space-y-6 animate-in fade-in duration-500 w-full max-w-7xl mx-auto">
+      <div className="animate-in fade-in duration-500 w-full h-full overflow-y-auto pr-2 pb-4 max-w-7xl mx-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-zinc-900/50 [&::-webkit-scrollbar-thumb]:bg-zinc-700 [&::-webkit-scrollbar-thumb]:rounded-full space-y-6">
         <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-8 shadow-xl">
           <h2 className="text-2xl font-black text-zinc-100 mb-4 flex items-center tracking-tight">
             <Activity className={`mr-3 ${currentTheme.textAccent} w-8 h-8`} /> Edge Terminations Simulator
@@ -339,12 +396,12 @@ const App = () => {
     const hasBeenMeasured = attackerActive && (transmissionState === 'intercepted' || transmissionState === 'moving_after_intercept' || transmissionState === 'aborted');
 
     return (
-      <div className="relative w-full h-96 bg-zinc-900 rounded-xl p-6 flex items-center justify-between overflow-hidden border border-zinc-800 shadow-xl">
+      <div className="relative w-full flex-1 min-h-[340px] bg-zinc-900 rounded-xl p-4 sm:p-6 flex items-center justify-between overflow-hidden border border-zinc-800 shadow-xl">
         {/* Dark Mode Decorative Grid Background */}
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:24px_24px]"></div>
 
         {/* Sender (Alice/A1 User/Vienna 1) */}
-        <div className="z-10 flex flex-col items-center text-center w-24">
+        <div className="z-10 flex flex-col items-center text-center w-24 relative">
           <div className="w-20 h-20 bg-zinc-800 rounded-xl flex items-center justify-center border-2 border-zinc-700 shadow-md relative">
             <div className={`absolute -right-2 -top-2 w-4 h-4 rounded-full ${
               ((transmissionState !== 'idle' && transmissionState !== 'received' && transmissionState !== 'aborted' && direction === 'ltr') || 
@@ -355,6 +412,12 @@ const App = () => {
           <span className="mt-3 font-black text-zinc-300 tracking-widest uppercase text-[10px] sm:text-xs leading-tight whitespace-pre-line">
             {mode === 'qkd' ? 'A1 Datacenter\nVienna 1' : 'A1 User'}
           </span>
+          {/* Animated Key Confirmation */}
+          {transmissionState === 'received' && (
+            <div className="absolute -bottom-8 flex items-center justify-center bg-emerald-500/20 border border-emerald-500 text-emerald-400 text-[10px] font-bold px-2 py-0.5 rounded-full animate-in slide-in-from-top-2 fade-in duration-300 whitespace-nowrap shadow-[0_0_10px_rgba(16,185,129,0.3)]">
+              <Key size={10} className="mr-1"/> Key Synced
+            </div>
+          )}
         </div>
 
         {/* Network Channels */}
@@ -376,7 +439,7 @@ const App = () => {
 
                   {/* Packet Animation */}
                   {transmissionState !== 'idle' && (
-                    <div className={`absolute top-1/2 transform -translate-y-1/2 transition-all ${getPacketDuration()} ease-linear ${getPacketPosition()} z-20`}>
+                    <div className={`absolute top-1/2 transform -translate-y-1/2 transition-all ${getPacketDuration()} ease-linear ${getPacketPosition()} z-20 packet-anim`}>
                       <div className={`relative flex items-center justify-center rounded-2xl shadow-lg transition-all duration-500 ${mode === 'classical' ? 'w-20 h-10 bg-blue-600 border-2 border-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.6)]' : ''} ${mode === 'pqc' ? 'w-40 h-12 bg-emerald-600 border-2 border-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.6)]' : ''}`}>
                         {mode === 'classical' && (
                           <div className="flex items-center space-x-2 text-white text-[10px] uppercase font-black">
@@ -385,13 +448,14 @@ const App = () => {
                           </div>
                         )}
                         {mode === 'pqc' && (
-                          <div className="flex items-center justify-center w-full space-x-2 text-white text-[10px] uppercase font-black">
-                            <Package size={28} className="text-white" />
-                            <div className="flex flex-col space-y-1">
-                              <div className="flex space-x-1">
-                                <Lock size={12} className="text-white" />
-                                <Lock size={12} className="text-white" />
-                                <Lock size={12} className="text-white" />
+                          <div className="flex items-center justify-start w-full px-3 space-x-3 text-white text-[10px] uppercase font-black">
+                            <Package size={24} className="text-white flex-shrink-0" />
+                            <div className="flex flex-col space-y-1 w-full">
+                              <div className="text-[7px] leading-none text-emerald-200 tracking-widest">ML-KEM PAYLOAD</div>
+                              <div className="grid grid-cols-6 gap-[2px] w-full">
+                                {Array.from({ length: 12 }).map((_, i) => (
+                                  <div key={i} className="h-1.5 bg-emerald-300/80 rounded-[1px] animate-pulse" style={{ animationDelay: `${i * 100}ms` }}></div>
+                                ))}
                               </div>
                             </div>
                           </div>
@@ -417,10 +481,39 @@ const App = () => {
 
                   {/* Photon Animation Link */}
                   {transmissionState !== 'idle' && (
-                    <div className={`absolute top-1/2 transform -translate-y-1/2 transition-all ${getPacketDuration()} ease-linear ${getPacketPosition()} z-10`}>
-                      <div className="flex space-x-3">
-                        <div className={`w-4 h-4 rounded-full transition-colors duration-300 ${hasBeenMeasured ? 'bg-amber-400 shadow-[0_0_15px_rgba(251,191,36,1)]' : 'bg-purple-300 shadow-[0_0_15px_rgba(216,180,254,1)]'} animate-pulse`}></div>
-                        <div className={`w-4 h-4 rounded-full transition-colors duration-300 ${hasBeenMeasured ? 'bg-amber-400 shadow-[0_0_15px_rgba(251,191,36,1)]' : 'bg-purple-300 shadow-[0_0_15px_rgba(216,180,254,1)]'} animate-pulse delay-75`}></div>
+                    <div className={`absolute top-1/2 transform -translate-y-1/2 transition-all ${getPacketDuration()} ease-linear ${getPacketPosition()} z-10 packet-anim`}>
+                      <div className="flex space-x-1 sm:space-x-2 items-center">
+                        {Array.from({ length: 4 }).map((_, i) => (
+                          <div key={i} className="relative flex items-center justify-center animate-pulse" style={{ animationDelay: `${i * 150}ms`, animationDuration: '1s' }}>
+                            <svg
+                              width="24"
+                              height="16"
+                              viewBox="0 0 24 16"
+                              className={`transform transition-all duration-300 ${
+                                hasBeenMeasured 
+                                  ? 'text-amber-400 drop-shadow-[0_0_10px_rgba(251,191,36,1)] scale-75' 
+                                  : 'text-purple-300 drop-shadow-[0_0_10px_rgba(216,180,254,1)] scale-100'
+                              }`}
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2.5"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            >
+                              {hasBeenMeasured ? (
+                                /* Collapsed state: distinct particles/dots instead of waves */
+                                <>
+                                  <circle cx="6" cy="8" r="1.5" fill="currentColor" stroke="none" />
+                                  <circle cx="18" cy="8" r="1.5" fill="currentColor" stroke="none" />
+                                  <path d="M 4 8 L 20 8" strokeWidth="1" strokeDasharray="2 2" className="opacity-50" />
+                                </>
+                              ) : (
+                                /* Wave state: undulating sine wave */
+                                <path d="M 0 8 Q 3 2, 6 8 T 12 8 T 18 8 T 24 8" />
+                              )}
+                            </svg>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   )}
@@ -508,7 +601,7 @@ const App = () => {
         </div>
 
         {/* Receiver (Bob/A1 App/Vienna 2) */}
-        <div className="z-10 flex flex-col items-center text-center w-24">
+        <div className="z-10 flex flex-col items-center text-center w-24 relative">
           <div className="w-20 h-20 bg-zinc-800 rounded-xl flex items-center justify-center border-2 border-zinc-700 shadow-md relative">
             <div className={`absolute -left-2 -top-2 w-4 h-4 rounded-full ${
               ((transmissionState !== 'idle' && transmissionState !== 'received' && transmissionState !== 'aborted' && direction === 'rtl') || 
@@ -519,18 +612,24 @@ const App = () => {
           <span className="mt-3 font-black text-zinc-300 tracking-widest uppercase text-[10px] sm:text-xs leading-tight whitespace-pre-line">
             {mode === 'qkd' ? 'A1 Datacenter\nVienna 2' : 'A1 App'}
           </span>
+          {/* Animated Key Confirmation */}
+          {transmissionState === 'received' && (
+            <div className="absolute -bottom-8 flex items-center justify-center bg-emerald-500/20 border border-emerald-500 text-emerald-400 text-[10px] font-bold px-2 py-0.5 rounded-full animate-in slide-in-from-top-2 fade-in duration-300 whitespace-nowrap shadow-[0_0_10px_rgba(16,185,129,0.3)]">
+              <Key size={10} className="mr-1"/> Key Synced
+            </div>
+          )}
         </div>
       </div>
     );
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 p-4 sm:p-6 md:p-8 font-sans overflow-x-hidden">
-      <div className="max-w-[1800px] mx-auto space-y-8 flex flex-col min-h-[calc(100vh-4rem)]">
+    <div className="h-screen bg-zinc-950 text-zinc-100 p-2 sm:p-4 md:p-6 font-sans overflow-x-hidden overflow-y-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-zinc-950 [&::-webkit-scrollbar-thumb]:bg-zinc-800 hover:[&::-webkit-scrollbar-thumb]:bg-zinc-700 [&::-webkit-scrollbar-thumb]:rounded-full">
+      <div className="max-w-[1800px] mx-auto gap-3 sm:gap-4 flex flex-col h-full min-h-[850px]">
         
         {/* Header - A1 Corporate Dark Theme */}
-        <div className="bg-zinc-900 border-t-8 border-[#E50000] border-x border-b border-zinc-800 rounded-xl p-6 sm:p-8 shadow-2xl relative overflow-hidden flex-shrink-0">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 relative z-10">
+        <div className="bg-zinc-900 border-t-8 border-[#E50000] border-x border-b border-zinc-800 rounded-xl p-4 sm:p-6 shadow-xl relative overflow-hidden flex-shrink-0">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 sm:mb-6 relative z-10">
             <div>
               <div className="flex items-center mb-2">
                 <div className={`w-10 h-10 bg-white rounded-lg flex items-center justify-center mr-4 shadow-[0_0_15px_rgba(229,0,0,0.5)] overflow-hidden p-1`}>
@@ -563,12 +662,12 @@ const App = () => {
           </div>
 
           {/* Mode Selectors - Dark Theme */}
-          <div className="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-6 relative z-10">
+          <div className="flex flex-col md:flex-row space-y-3 md:space-y-0 md:space-x-4 relative z-10">
             {Object.values(themes).map((t) => (
               <button 
                 key={t.id}
                 onClick={() => setMode(t.id)}
-                className={`flex-1 py-4 px-6 rounded-xl border-2 transition-all duration-300 group hover:-translate-y-1 ${mode === t.id ? t.btnActive : 'border-zinc-800 bg-zinc-950 text-zinc-400 hover:border-zinc-700 hover:bg-zinc-800'}`}
+                className={`flex-1 py-3 px-4 rounded-xl border-2 transition-all duration-300 group hover:-translate-y-1 ${mode === t.id ? t.btnActive : 'border-zinc-800 bg-zinc-950 text-zinc-400 hover:border-zinc-700 hover:bg-zinc-800'}`}
               >
                 <div className={`font-black text-lg tracking-wide ${mode === t.id ? t.textPrimary : 'text-zinc-300'}`}>{t.name}</div>
                 <div className={`text-xs mt-2 font-bold tracking-widest uppercase ${mode === t.id ? t.textAccent : 'opacity-50 group-hover:opacity-100 transition-opacity'}`}>{t.desc}</div>
@@ -579,58 +678,98 @@ const App = () => {
 
         {/* Main Simulator Area - Center Stage & Columns Layout */}
         {activeTab === 'architecture' ? (
-          <div className="flex flex-col gap-8 w-full animate-in fade-in duration-500 flex-grow">
+          <div className="flex flex-col gap-3 sm:gap-4 w-full h-full animate-in fade-in duration-500 min-h-0">
             
             {/* Top Stage: Visualization & Controls (Takes Center Stage) */}
-            <div className="w-full flex flex-col space-y-6 z-10 transition-all duration-700 ease-out hover:scale-[1.01] origin-top">
+            <div className="w-full flex flex-col gap-3 sm:gap-4 z-10 transition-all duration-700 ease-out hover:scale-[1.01] origin-top flex-[1.2] min-h-min flex-shrink-0">
               {renderTopology()}
 
-              <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-6 relative overflow-hidden">
+              <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4 relative overflow-hidden flex-shrink-0">
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.03] to-transparent w-[200%] animate-[pulse_4s_ease-in-out_infinite] pointer-events-none -translate-x-1/2"></div>
                 <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto relative z-10">
                   <button 
                     onClick={toggleTransmission}
-                    className={`w-full sm:w-auto ${A1_RED_BG} hover:bg-red-700 text-white px-6 py-4 rounded-lg font-black tracking-widest uppercase shadow-[0_0_15px_rgba(229,0,0,0.3)] hover:-translate-y-0.5 hover:shadow-[0_0_20px_rgba(229,0,0,0.5)] transition-all duration-200 outline-none`}
+                    className={`w-full sm:w-auto ${A1_RED_BG} hover:bg-red-700 text-white px-6 py-3 rounded-lg font-black tracking-widest uppercase shadow-[0_0_15px_rgba(229,0,0,0.3)] hover:-translate-y-0.5 hover:shadow-[0_0_20px_rgba(229,0,0,0.5)] transition-all duration-200 outline-none`}
                   >
-                    {isTransmitting ? 'Stop' : 'Transmit'}
+                    {isTransmitting ? (isPaused ? 'Continue' : 'Stop') : 'Transmit'}
                   </button>
                   <button 
                     onClick={handleAttackerToggle}
-                    className={`w-full sm:w-auto px-6 py-4 rounded-lg font-black tracking-widest uppercase border-2 transition-all duration-200 shadow-sm hover:-translate-y-0.5 outline-none ${attackerActive ? 'bg-amber-500/20 border-amber-500 text-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.3)] hover:bg-amber-500/30' : 'bg-zinc-800 border-zinc-600 text-zinc-300 hover:border-zinc-500 hover:text-white hover:bg-zinc-700'}`}
+                    className={`w-full sm:w-auto px-6 py-3 rounded-lg font-black tracking-widest uppercase border-2 transition-all duration-200 shadow-sm hover:-translate-y-0.5 outline-none ${attackerActive ? 'bg-amber-500/20 border-amber-500 text-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.3)] hover:bg-amber-500/30' : 'bg-zinc-800 border-zinc-600 text-zinc-300 hover:border-zinc-500 hover:text-white hover:bg-zinc-700'}`}
                   >
                     {attackerActive ? 'Disable Attacker' : 'MitM Attack'}
                   </button>
                 </div>
 
-                {/* Status Output */}
-                <div className="text-center sm:text-right w-full sm:w-auto bg-zinc-950 p-4 rounded-lg border border-zinc-800 min-w-[180px] relative z-10">
-                  <div className="text-xs text-zinc-500 mb-1 font-bold uppercase tracking-widest">Network Status</div>
-                  <div className="font-mono font-black text-xl tracking-wider">
-                    {transmissionState === 'idle' && <span className="text-zinc-500">READY</span>}
-                    {(transmissionState === 'sending' || transmissionState === 'moving') && <span className="text-blue-500 animate-pulse drop-shadow-[0_0_8px_rgba(59,130,246,0.8)]">TRANSMITTING</span>}
-                    {transmissionState === 'intercepted' && <span className="text-amber-500 animate-pulse drop-shadow-[0_0_8px_rgba(245,158,11,0.8)]">INTERCEPTED!</span>}
-                    {transmissionState === 'received' && <span className="text-emerald-500 drop-shadow-[0_0_8px_rgba(16,185,129,0.8)]">SECURE</span>}
-                    {transmissionState === 'aborted' && <span className="text-[#E50000] flex items-center justify-center sm:justify-end drop-shadow-[0_0_8px_rgba(229,0,0,0.8)]"><ShieldAlert size={20} className="mr-2"/> ABORTED</span>}
+                {/* Dashboard Widgets */}
+                <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto justify-end items-stretch relative z-10">
+                  {/* QBER Widget (Only for QKD) */}
+                  {mode === 'qkd' && (
+                    <div className="flex items-center justify-between gap-4 bg-zinc-950 p-3 sm:p-4 rounded-lg border border-zinc-800 min-w-[140px] h-[88px] relative overflow-hidden">
+                      {qber > 11 && <div className="absolute inset-0 bg-[#E50000]/10 animate-pulse pointer-events-none"></div>}
+                      <div className="flex flex-col text-left z-10 justify-center">
+                        <span className="text-xs text-zinc-500 font-bold uppercase tracking-widest">QBER</span>
+                      </div>
+                      {/* Circular SVG Gauge */}
+                    <div className="relative w-14 h-14 flex items-center justify-center z-10">
+                        <svg className="w-full h-full transform -rotate-90 drop-shadow-md" viewBox="0 0 100 100">
+                          <circle cx="50" cy="50" r="38" stroke="currentColor" strokeWidth="12" fill="transparent" className="text-zinc-800" />
+                          <circle cx="50" cy="50" r="38" stroke="currentColor" strokeWidth="12" fill="transparent" strokeLinecap="round"
+                            className={`transition-all duration-700 ease-out ${qber > 11 ? 'text-[#E50000]' : 'text-emerald-500'}`}
+                            style={{
+                              strokeDasharray: 2 * Math.PI * 38,
+                              strokeDashoffset: 2 * Math.PI * 38 - (qber / 100) * (2 * Math.PI * 38),
+                              filter: qber > 11 ? 'drop-shadow(0 0 2px rgba(229,0,0,0.6))' : (qber > 0 ? 'drop-shadow(0 0 2px rgba(16,185,129,0.6))' : 'none')
+                            }}
+                          />
+                        </svg>
+                        <div className="absolute flex flex-col items-center justify-center">
+                        <span className={`font-mono font-black text-xs leading-none ${qber > 11 ? 'text-[#E50000]' : 'text-emerald-500'}`}>
+                            {qber}%
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Status Output */}
+                  <div className="text-center sm:text-right w-full sm:w-[240px] flex-shrink-0 h-[88px] bg-zinc-950 p-4 rounded-lg border border-zinc-800 flex flex-col justify-center">
+                    <div className="text-xs text-zinc-500 mb-1 font-bold uppercase tracking-widest">Network Status</div>
+                    <div className="font-mono font-black text-lg sm:text-xl tracking-wider h-7 flex items-center justify-center sm:justify-end">
+                      {transmissionState === 'idle' && <span className="text-zinc-500">READY</span>}
+                      {(transmissionState === 'sending' || transmissionState === 'moving') && <span className="text-blue-500 animate-pulse drop-shadow-[0_0_8px_rgba(59,130,246,0.8)]">TRANSMITTING</span>}
+                      {transmissionState === 'intercepted' && <span className="text-amber-500 animate-pulse drop-shadow-[0_0_8px_rgba(245,158,11,0.8)]">INTERCEPTED!</span>}
+                      {transmissionState === 'received' && <span className="text-emerald-500 drop-shadow-[0_0_8px_rgba(16,185,129,0.8)]">SECURE</span>}
+                      {transmissionState === 'aborted' && <span className="text-[#E50000] flex items-center justify-center sm:justify-end drop-shadow-[0_0_8px_rgba(229,0,0,0.8)]"><ShieldAlert size={20} className="mr-2"/> ABORTED</span>}
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Bottom Row: 2 Columns for Architecture & Security */}
-            <div className="flex flex-col lg:flex-row gap-6 w-full items-stretch">
+            <div className="flex flex-col lg:flex-row gap-4 w-full items-stretch flex-1 min-h-[280px]">
               
               {/* Left Column: Architectural Impact */}
-              <div className="lg:w-1/2 w-full flex flex-col space-y-6">
-                <div className={`bg-zinc-900 border border-zinc-800 rounded-xl p-6 shadow-xl relative overflow-hidden transition-colors duration-500 h-full flex flex-col`}>
-                  <div className={`absolute left-0 top-0 w-2 h-full ${currentTheme.barColor} transition-colors duration-500`}></div>
-                  <h3 className={`text-lg font-black ${currentTheme.textPrimary} mb-6 uppercase tracking-widest flex items-center`}>
-                    <Activity className={`mr-3 ${currentTheme.textAccent}`}/> Architectural Impact
+              <div className="lg:w-1/2 w-full flex flex-col">
+                <div className={`bg-zinc-900/80 border border-zinc-800/80 rounded-xl p-4 shadow-lg relative overflow-hidden transition-colors duration-500 h-full flex flex-col opacity-90 hover:opacity-100 overflow-y-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-zinc-700 [&::-webkit-scrollbar-thumb]:rounded-full`}>
+                  <div className={`absolute left-0 top-0 w-1.5 h-full ${currentTheme.barColor} transition-colors duration-500`}></div>
+                  <h3 className={`text-base font-black ${currentTheme.textPrimary} mb-4 uppercase tracking-widest flex items-center`}>
+                    <Activity className={`mr-2.5 w-5 h-5 ${currentTheme.textAccent}`}/> Architectural Impact
                   </h3>
                   
-                  <div className="space-y-6 text-sm flex-grow">
+                  <div className="space-y-4 text-xs flex-grow">
                     <div>
-                      <div className="text-zinc-500 mb-2 font-bold uppercase tracking-wider text-xs">OSI Layer Operation</div>
-                      <div className={`font-mono ${currentTheme.textPrimary} ${currentTheme.bgLight} p-4 rounded-lg border ${currentTheme.borderLight} font-bold text-base transition-colors duration-500`}>
+                      <div className="text-zinc-500 mb-1.5 font-bold uppercase tracking-wider text-[10px] flex items-center w-fit group relative cursor-help">
+                        OSI Layer Operation
+                        <Info size={12} className="ml-1 text-zinc-600 group-hover:text-zinc-300 transition-colors" />
+                        <div className="absolute bottom-full left-0 mb-2 w-56 p-2.5 bg-zinc-800 border border-zinc-700 rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50 text-[10px] text-zinc-300 normal-case tracking-normal font-medium leading-relaxed">
+                          {mode === 'classical' && "Layers 3-7 handle software-based encryption (e.g., TLS/IPsec). Operates mathematically over existing network infrastructure without physical layer changes."}
+                          {mode === 'pqc' && "Layers 3-7 handle post-quantum software encryption. Protects against quantum computers mathematically without requiring physical layer changes."}
+                          {mode === 'qkd' && "Layer 1 (Physical) handles raw photon transmission. Uses quantum mechanics properties on dedicated fiber optic links to detect interception instantly."}
+                        </div>
+                      </div>
+                      <div className={`font-mono ${currentTheme.textPrimary} ${currentTheme.bgLight} p-3 rounded-lg border ${currentTheme.borderLight} font-bold text-sm transition-colors duration-500`}>
                         {mode === 'classical' && "Layers 3-7 (Software/Math)"}
                         {mode === 'pqc' && "Layers 3-7 (Software/Post-Quantum Math)"}
                         {mode === 'qkd' && "Layer 1 (Hardware/Quantum Light)"}
@@ -638,8 +777,8 @@ const App = () => {
                     </div>
 
                     <div>
-                      <div className="text-zinc-500 mb-2 font-bold uppercase tracking-wider text-xs">Infrastructure Requirement</div>
-                      <div className={`font-mono p-4 rounded-lg border leading-relaxed transition-colors duration-500 ${currentTheme.bgLight} ${currentTheme.borderLight} ${currentTheme.textPrimary} font-medium`}>
+                      <div className="text-zinc-500 mb-1.5 font-bold uppercase tracking-wider text-[10px]">Infrastructure Requirement</div>
+                      <div className={`font-mono p-3 rounded-lg border leading-relaxed transition-colors duration-500 ${currentTheme.bgLight} ${currentTheme.borderLight} ${currentTheme.textPrimary} font-medium`}>
                         {mode === 'classical' && "Standard IP Network. No hardware changes required."}
                         {mode === 'pqc' && "Standard IP network. Requires post-quantum handshake upgrades."}
                         {mode === 'qkd' && "Dedicated dark fiber required. Highly secure physical bunkers (Trusted Nodes) required every ~100km."}
@@ -647,14 +786,14 @@ const App = () => {
                     </div>
 
                     <div>
-                      <div className="text-zinc-500 mb-2 font-bold uppercase tracking-wider text-xs">Network Payload (Public Key)</div>
-                      <div className={`font-mono ${currentTheme.textPrimary} ${currentTheme.bgLight} p-4 rounded-lg border ${currentTheme.borderLight} flex items-center justify-between font-bold transition-colors duration-500`}>
+                      <div className="text-zinc-500 mb-1.5 font-bold uppercase tracking-wider text-[10px]">Network Payload (Public Key)</div>
+                      <div className={`font-mono ${currentTheme.textPrimary} ${currentTheme.bgLight} p-3 rounded-lg border ${currentTheme.borderLight} flex items-center justify-between font-bold transition-colors duration-500`}>
                         <span>
                           {mode === 'classical' && "Small (e.g., 32B for ECC)"}
                           {mode === 'pqc' && <span className="text-emerald-400">Massive public key metadata</span>}
                           {mode === 'qkd' && "N/A (Quantum light pulses)"}
                         </span>
-                        {mode === 'pqc' && <Activity size={20} className="text-emerald-500 animate-pulse"/>}
+                        {mode === 'pqc' && <Activity size={16} className="text-emerald-500 animate-pulse"/>}
                       </div>
                     </div>
                   </div>
@@ -662,67 +801,20 @@ const App = () => {
               </div>
 
               {/* Right Column: Security Analysis */}
-              <div className="lg:w-1/2 w-full flex flex-col space-y-6">
-                <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 shadow-xl relative overflow-hidden h-full flex flex-col">
-                  <div className={`absolute left-0 top-0 w-2 h-full ${mode === 'classical' ? 'bg-[#E50000]' : 'bg-emerald-500'} transition-colors duration-500`}></div>
-                  <h3 className="text-lg font-black text-zinc-100 mb-6 uppercase tracking-widest flex items-center">
-                    <Shield className="mr-3 text-zinc-400"/> Security Analysis
+              <div className="lg:w-1/2 w-full flex flex-col">
+                <div className="bg-zinc-900/80 border border-zinc-800/80 rounded-xl p-4 shadow-lg relative overflow-hidden h-full flex flex-col opacity-90 hover:opacity-100 transition-opacity overflow-y-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-zinc-700 [&::-webkit-scrollbar-thumb]:rounded-full">
+                  <div className={`absolute left-0 top-0 w-1.5 h-full ${mode === 'classical' ? 'bg-[#E50000]' : 'bg-emerald-500'} transition-colors duration-500`}></div>
+                  <h3 className="text-base font-black text-zinc-100 mb-4 uppercase tracking-widest flex items-center">
+                    <Shield className="mr-2.5 w-5 h-5 text-zinc-400"/> Security Analysis
                   </h3>
                   
-                  {mode === 'qkd' && (
-                    <div className="mb-6 bg-zinc-950 p-4 rounded-lg border border-zinc-800 shadow-inner flex flex-col items-center relative overflow-hidden">
-                      {/* Subtle warning glow if QBER is critical */}
-                      {qber > 11 && <div className="absolute inset-0 bg-[#E50000]/5 animate-pulse pointer-events-none"></div>}
-                      
-                      <div className="text-xs text-zinc-400 mb-4 font-bold uppercase tracking-wider w-full text-center z-10">Quantum Bit Error Rate (QBER)</div>
-                      
-                      {/* Circular SVG Gauge */}
-                      <div className="relative w-28 h-28 flex items-center justify-center z-10 mb-3">
-                        <svg className="w-full h-full transform -rotate-90 drop-shadow-xl" viewBox="0 0 100 100">
-                          <circle
-                            cx="50"
-                            cy="50"
-                            r="38"
-                            stroke="currentColor"
-                            strokeWidth="8"
-                            fill="transparent"
-                            className="text-zinc-800"
-                          />
-                          <circle
-                            cx="50"
-                            cy="50"
-                            r="38"
-                            stroke="currentColor"
-                            strokeWidth="8"
-                            fill="transparent"
-                            strokeLinecap="round"
-                            className={`transition-all duration-700 ease-out ${qber > 11 ? 'text-[#E50000]' : 'text-emerald-500'}`}
-                            style={{
-                              strokeDasharray: 2 * Math.PI * 38,
-                              strokeDashoffset: 2 * Math.PI * 38 - (qber / 100) * (2 * Math.PI * 38),
-                              filter: qber > 11 ? 'drop-shadow(0 0 6px rgba(229,0,0,0.8))' : (qber > 0 ? 'drop-shadow(0 0 6px rgba(16,185,129,0.8))' : 'none')
-                            }}
-                          />
-                        </svg>
-                        <div className="absolute flex flex-col items-center justify-center">
-                          <span className={`font-mono font-black text-2xl leading-none ${qber > 11 ? 'text-[#E50000] drop-shadow-[0_0_8px_rgba(229,0,0,0.5)]' : 'text-emerald-500 drop-shadow-[0_0_8px_rgba(16,185,129,0.5)]'}`}>
-                            {qber}%
-                          </span>
-                        </div>
-                      </div>
-                      <p className="text-xs text-zinc-500 italic text-center w-full z-10 border-t border-zinc-800 pt-3">
-                        Threshold: ~11%. Attacker's measurement forces collapse.
-                      </p>
-                    </div>
-                  )}
-
-                  <div className="text-sm space-y-4 flex-grow">
-                    <div className="flex items-start bg-zinc-950 p-4 rounded-lg border border-zinc-800">
-                      <div className="mt-1 mr-4 bg-zinc-800 p-2 rounded-md border border-zinc-700 shadow-sm flex-shrink-0">
-                        {mode === 'qkd' ? <Unlock className="text-amber-500" size={20}/> : (mode === 'classical' ? <Unlock className="text-[#E50000]" size={20}/> : <Lock className="text-emerald-500" size={20}/>)}
+                  <div className="text-xs space-y-3 flex-grow">
+                    <div className="flex items-start bg-zinc-950 p-3 rounded-lg border border-zinc-800">
+                      <div className="mt-0.5 mr-3 bg-zinc-800 p-1.5 rounded-md border border-zinc-700 shadow-sm flex-shrink-0">
+                        {mode === 'qkd' ? <Unlock className="text-amber-500" size={16}/> : (mode === 'classical' ? <Unlock className="text-[#E50000]" size={16}/> : <Lock className="text-emerald-500" size={16}/>)}
                       </div>
                       <div>
-                        <div className="font-black text-zinc-300 uppercase tracking-wider text-xs mb-1">Against Quantum Computers</div>
+                        <div className="font-black text-zinc-300 uppercase tracking-wider text-[10px] mb-1">Against Quantum Computers</div>
                         <div className={`leading-relaxed font-medium ${mode === 'classical' ? 'text-red-400' : (mode === 'qkd' ? 'text-amber-400' : 'text-emerald-400')}`}>
                           {mode === 'classical' && "Vulnerable (Shor's). Attacker saves packets now to decrypt later (HNDL)."}
                           {mode === 'pqc' && "Secure. Mathematically resistant to known quantum algorithms."}
@@ -731,12 +823,12 @@ const App = () => {
                       </div>
                     </div>
 
-                    <div className="flex items-start bg-zinc-950 p-4 rounded-lg border border-zinc-800">
-                      <div className="mt-1 mr-4 bg-zinc-800 p-2 rounded-md border border-zinc-700 shadow-sm flex-shrink-0">
-                        {attackerActive && mode === 'qkd' ? <Activity className="text-blue-500" size={20}/> : <Wifi className="text-zinc-400" size={20}/>}
+                    <div className="flex items-start bg-zinc-950 p-3 rounded-lg border border-zinc-800">
+                      <div className="mt-0.5 mr-3 bg-zinc-800 p-1.5 rounded-md border border-zinc-700 shadow-sm flex-shrink-0">
+                        {attackerActive && mode === 'qkd' ? <Activity className="text-blue-500" size={16}/> : <Wifi className="text-zinc-400" size={16}/>}
                       </div>
                       <div>
-                        <div className="font-black text-zinc-300 uppercase tracking-wider text-xs mb-1">Eavesdropping Detection</div>
+                        <div className="font-black text-zinc-300 uppercase tracking-wider text-[10px] mb-1">Eavesdropping Detection</div>
                         <div className="text-zinc-400 leading-relaxed font-medium">
                           {mode === 'classical' && "None. Attacker can copy IP packets passively without detection."}
                           {mode === 'pqc' && "None. Attacker can copy IP packets passively, but cannot read them."}
