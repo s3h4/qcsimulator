@@ -631,8 +631,8 @@ const App = () => {
                     <div>
                       <div className="text-zinc-500 mb-2 font-bold uppercase tracking-wider text-xs">OSI Layer Operation</div>
                       <div className={`font-mono ${currentTheme.textPrimary} ${currentTheme.bgLight} p-4 rounded-lg border ${currentTheme.borderLight} font-bold text-base transition-colors duration-500`}>
-                        {mode === 'classical' && "Layer 7 (Software/Math)"}
-                        {mode === 'pqc' && "Layer 7 (Software/Post-Quantum Math)"}
+                        {mode === 'classical' && "Layers 3-7 (Software/Math)"}
+                        {mode === 'pqc' && "Layers 3-7 (Software/Post-Quantum Math)"}
                         {mode === 'qkd' && "Layer 1 (Hardware/Quantum Light)"}
                       </div>
                     </div>
